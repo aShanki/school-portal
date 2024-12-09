@@ -9,7 +9,7 @@ interface ExtendedUser {
   id: string;
   role: string;
   email: string;
-name: string;
+  name: string;
 }
 
 interface ExtendedSession extends Session {
@@ -72,15 +72,9 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Handle relative URLs
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`
-      } 
-      // Handle URLs from same origin
-      else if (new URL(url).origin === baseUrl) {
-        return url
-      }
-      return baseUrl + '/dashboard'
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      else if (url.startsWith(baseUrl)) return url
+      return baseUrl
     },
   },
   pages: {
@@ -90,7 +84,5 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  }
 }
