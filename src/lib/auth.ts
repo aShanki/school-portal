@@ -72,13 +72,8 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Always allow dashboard redirects
-      if (url.startsWith('/dashboard')) {
-        return `${baseUrl}/dashboard`
-      }
-      // Default redirect behavior
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      if (new URL(url).origin === baseUrl) return url
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      else if (url.startsWith(baseUrl)) return url
       return baseUrl
     },
   },
