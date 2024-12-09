@@ -58,7 +58,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      console.log('JWT callback:', { token, user })
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -66,19 +65,20 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }): Promise<Session> {
-      console.log('Session callback:', { session, token })
       if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.id = token.id as string
+        session.user.role = token.role as string
       }
       return session
     },
     async redirect({ url, baseUrl }) {
-      console.log('Redirect callback:', { url, baseUrl })
-      // Allows relative URLs
+      // Always allow dashboard redirects
+      if (url.startsWith('/dashboard')) {
+        return `${baseUrl}/dashboard`
+      }
+      // Default redirect behavior
       if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
+      if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },
   },
