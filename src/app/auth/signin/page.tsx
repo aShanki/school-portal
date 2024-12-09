@@ -20,17 +20,17 @@ export default function SignIn() {
       const response = await signIn('credentials', {
         email: formData.get('email'),
         password: formData.get('password'),
-        redirect: false,
+        callbackUrl: '/dashboard',
+        redirect: true
       })
 
+      // The following code won't execute if redirect is true
       if (response?.error) {
         toast({
           variant: "destructive",
           title: "Error",
           description: "Invalid credentials"
         })
-      } else {
-        router.replace('/dashboard')
       }
     } catch (error) {
       toast({

@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log('Attempting sign in...')
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Missing credentials')
         }
@@ -57,6 +58,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      console.log('JWT callback:', { token, user })
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -64,6 +66,7 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }): Promise<Session> {
+      console.log('Session callback:', { session, token })
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
@@ -71,6 +74,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
+      console.log('Redirect callback:', { url, baseUrl })
       // Allows relative URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
       // Allows callback URLs on the same origin
