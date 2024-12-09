@@ -15,12 +15,13 @@ export default function SignIn() {
     setIsLoading(true)
 
     const formData = new FormData(event.currentTarget)
+    const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl') || '/dashboard'
 
     try {
       const response = await signIn('credentials', {
         email: formData.get('email'),
         password: formData.get('password'),
-        redirect: false
+        redirect: false,
       })
 
       if (response?.error) {
@@ -30,7 +31,7 @@ export default function SignIn() {
           description: "Invalid credentials"
         })
       } else {
-        router.push('/dashboard')
+        window.location.href = callbackUrl
       }
     } catch (error) {
       toast({
