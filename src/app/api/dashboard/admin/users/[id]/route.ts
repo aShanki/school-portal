@@ -6,10 +6,11 @@ import User from '@/models/User'
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
   try {
-    if (!params?.id) {
+    const { id } = await params
+    if (!id) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
@@ -33,7 +34,7 @@ export async function PATCH(
     }
 
     const user = await User.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true }
     ).select('-password')
@@ -56,11 +57,11 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
   try {
-    // Validate params
-    if (!params?.id) {
+    const { id } = await params
+    if (!id) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
@@ -72,7 +73,7 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    const user = await User.findByIdAndDelete(params.id)
+    const user = await User.findByIdAndDelete(id)
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },

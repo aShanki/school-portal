@@ -6,7 +6,7 @@ import Class from '@/models/Class'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function POST(
     }
 
     const { studentId } = await request.json()
-    const { id } = params  // Properly destructure from params
+    const { id } = await params
 
     await connectToDb()
     

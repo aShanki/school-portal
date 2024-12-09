@@ -6,15 +6,14 @@ import Class from '@/models/Class'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; studentId: string } }
+  { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
   try {
+    const { id, studentId } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user?.role === 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const { id, studentId } = params
 
     await connectToDb()
     
@@ -32,15 +31,14 @@ export async function DELETE(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string; studentId: string } }
+  { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
   try {
+    const { id, studentId } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user?.role === 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const { id, studentId } = params
 
     await connectToDb()
     

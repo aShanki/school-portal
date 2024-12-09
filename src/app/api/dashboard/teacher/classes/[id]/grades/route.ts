@@ -7,7 +7,7 @@ import Grade from '@/models/Grade'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     await connectToDb()
-    const grades = await Grade.find({ classId: params.id })
+    const grades = await Grade.find({ classId: id })
     return NextResponse.json(grades)
   } catch (error) {
     console.error('Error fetching grades:', error)
@@ -29,7 +30,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -37,12 +38,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     await connectToDb()
 
     const grade = await Grade.findOneAndUpdate(
       {
-        classId: params.id,
+        classId: id,
         studentId: body.studentId,
         assignmentId: body.assignmentId === 'participation' 
           ? PARTICIPATION_ASSIGNMENT_ID 

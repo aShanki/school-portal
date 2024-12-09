@@ -8,9 +8,10 @@ import User from '@/models/User'
 // Get students in a class
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'TEACHER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -19,7 +20,7 @@ export async function GET(
     await connectToDb()
 
     const classData = await Class.findOne({ 
-      _id: params.id,
+      _id: id,
       teacherId: session.user.id 
     }).populate('studentIds', 'name email')
 
@@ -40,9 +41,10 @@ export async function GET(
 // Add student to class
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'TEACHER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -60,7 +62,7 @@ export async function POST(
 
     const updatedClass = await Class.findOneAndUpdate(
       { 
-        _id: params.id,
+        _id: id,
         teacherId: session.user.id 
       },
       { $addToSet: { studentIds: body.studentId } },
@@ -84,9 +86,10 @@ export async function POST(
 // Remove student from class
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; studentId: string } }
+  context: { params: Promise<{ id: string; studentId: string }> }
 ) {
   try {
+    const { id, studentId } = await context.params
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'TEACHER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -96,10 +99,10 @@ export async function DELETE(
 
     const updatedClass = await Class.findOneAndUpdate(
       { 
-        _id: params.id,
+        _id: id,
         teacherId: session.user.id 
       },
-      { $pull: { studentIds: params.studentId } },
+      { $pull: { studentIds: studentId } },
       { new: true }
     ).populate('studentIds', 'name email')
 
