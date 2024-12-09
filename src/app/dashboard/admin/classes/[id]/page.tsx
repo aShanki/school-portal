@@ -2,13 +2,14 @@ import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 import ClassDetailsClient from './ClassDetailsClient'
 
-export default async function ClassDetailsPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default async function ClassDetailsPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   await connectToDb()
-  
+
   const classData = await Class.findById(params.id)
     .populate('teacherId', 'name email')
     .populate('studentIds', 'name email')
