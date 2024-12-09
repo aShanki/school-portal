@@ -4,16 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 
-interface RouteSegmentParams {
-  params: {
-    id: string
-    studentId: string
-  }
-}
-
 export async function DELETE(
   request: Request,
-  context: RouteSegmentParams
+  { params }: { params: { id: string; studentId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -21,7 +14,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id, studentId } = context.params
+    const { id, studentId } = params
 
     await connectToDb()
     
@@ -30,6 +23,36 @@ export async function DELETE(
       { $pull: { studentIds: studentId } },
       { new: true }
     ).populate('studentIds', 'name email')
+
+    return NextResponse.json(updatedClass)
+  } catch (error) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string; studentId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.role === 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id, studentId } = params
+
+    await connectToDb()
+    
+    const updatedClass = await Class.findByIdAndUpdate(
+      id,
+      { $addToSet: { studentIds: studentId } },
+      { new: true }
+    ).populate('studentIds', 'name email')
+
+    if (!updatedClass) {
+      return NextResponse.json({ error: 'Class not found' }, { status: 404 })
+    }
 
     return NextResponse.json(updatedClass)
   } catch (error) {
