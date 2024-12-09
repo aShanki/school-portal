@@ -1,10 +1,6 @@
-'use client'
-
-import { use } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import LoadingSpinner from '@/components/LoadingSpinner'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
+import { fetchData } from '@/lib/data-fetching'
 import {
   Table,
   TableBody,
@@ -14,60 +10,23 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-export default function ClassDetailsPage({
-  params
-}: {
-  params: { id: string }
-}) {
-  const id = use(params).id
-  const router = useRouter()
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function ClassDetailsPage({ params }: PageProps) {
+  const { id } = await params
+  const session = await getServerSession()
   
-  const { data: session } = useSession({
-    required: true,
-    onUnauthenticated() {
-      router.push('/auth/signin')
-    }
-  })
-
-  const { data: classData, isLoading } = useQuery({
-    queryKey: ['class', id],
-    queryFn: async () => {
-      const res = await fetch(`/api/dashboard/student/classes/${id}`)
-      if (!res.ok) throw new Error('Failed to fetch class')
-      return res.json()
-    }
-  })
-
-  if (isLoading) return <LoadingSpinner />
-
-  const calculateFinalGrade = () => {
-    if (!classData?.assignments?.length) return 'N/A'
-    
-    let totalPoints = 0
-    let maxPoints = 0
-
-    classData.assignments.forEach(assignment => {
-      const grade = classData.grades?.find(g => g.assignmentId === assignment._id)
-      if (grade) {
-        totalPoints += grade.points
-        maxPoints += assignment.totalPoints
-      }
-    })
-
-    return maxPoints === 0 ? 'N/A' : `${Math.round((totalPoints / maxPoints) * 100)}%`
+  if (!session) {
+    redirect('/auth/signin')
   }
+
+  const classData = await fetchData(`/api/dashboard/student/classes/${id}`)
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{classData?.name}</h1>
-        <button
-          className="text-blue-600 hover:text-blue-800"
-          onClick={() => router.back()}
-        >
-          ← Back to Classes
-        </button>
-      </div>
+      <h1 className="text-2xl font-bold">{classData?.name}</h1>
 
       <Table>
         <TableHeader>
@@ -79,7 +38,9 @@ export default function ClassDetailsPage({
         </TableHeader>
         <TableBody>
           {classData?.assignments?.map((assignment) => {
-            const grade = classData.grades?.find(g => g.assignmentId === assignment._id)
+            const grade = classData.grades?.find(
+              (g) => g.assignmentId === assignment._id
+            )
             return (
               <TableRow key={assignment._id}>
                 <TableCell>{assignment.name}</TableCell>
@@ -90,14 +51,6 @@ export default function ClassDetailsPage({
               </TableRow>
             )
           })}
-          <TableRow className="border-t-2">
-            <TableCell colSpan={2} className="font-bold">
-              Final Grade
-            </TableCell>
-            <TableCell className="text-right font-bold">
-              {calculateFinalGrade()}
-            </TableCell>
-          </TableRow>
         </TableBody>
       </Table>
     </div>
