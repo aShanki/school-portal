@@ -85,7 +85,7 @@ export default function ClassDetailsClient({ initialData, classId }: ClassDetail
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['class', classId])
+      queryClient.invalidateQueries({ queryKey: ['class', classId] })
     }
   })
 
@@ -98,11 +98,11 @@ export default function ClassDetailsClient({ initialData, classId }: ClassDetail
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['class', classId])
+      queryClient.invalidateQueries({ queryKey: ['class', classId] })
     }
   })
 
-  const filteredStudents = students?.filter(student => 
+  const filteredStudents = students?.filter((student: Student) => 
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -154,7 +154,7 @@ export default function ClassDetailsClient({ initialData, classId }: ClassDetail
                 </div>
                 <ScrollArea className="h-72">
                   <div className="space-y-2">
-                    {filteredStudents?.map((student) => (
+                    {filteredStudents?.map((student: Student) => (
                       <div key={student._id} className="flex items-center justify-between p-2 hover:bg-accent rounded-md">
                         <span>{student.name}</span>
                         <Button size="sm" onClick={() => {
@@ -176,7 +176,7 @@ export default function ClassDetailsClient({ initialData, classId }: ClassDetail
               No students assigned to this class
             </div>
           ) : (
-            classData?.studentIds?.map((student) => (
+            classData?.studentIds?.map((student: Student) => (
               <div key={student._id} className="flex items-center justify-between p-4 border-b last:border-b-0">
                 <span>{student.name}</span>
                 <Button 

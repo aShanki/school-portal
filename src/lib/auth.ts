@@ -2,7 +2,24 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDb } from "@/lib/mongodb";
 import bcrypt from 'bcryptjs';
 import User from "@/models/User";
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
+
+interface ExtendedUser {
+  id: string;
+  role: string;
+  email: string;
+  name: string;
+}
+
+interface ExtendedSession extends Session {
+  user: {
+    id?: string;
+    role?: string;
+    email?: string | null;
+    name?: string | null;
+  };
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -46,10 +63,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token
     },
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id
-        session.user.role = token.role
+    async session({ session, token }): Promise<Session> {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session
     },

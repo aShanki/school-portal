@@ -84,7 +84,7 @@ export function CreateClassDialog({
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['classes'])
+      queryClient.invalidateQueries({ queryKey: ['classes'] })
       toast.success(classToEdit ? 'Class updated successfully' : 'Class created successfully')
       form.reset()
       onOpenChange(false)

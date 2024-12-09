@@ -5,6 +5,13 @@ import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 import Attendance from '@/models/Attendance'
 
+// Add interface for Attendance document
+interface AttendanceDocument {
+  _id: string;
+  date: Date;
+  classId: string;
+}
+
 export async function GET() {
   console.log('API ROUTE HIT: /api/dashboard/teacher/classes') // Add this at the very start
   
@@ -14,8 +21,8 @@ export async function GET() {
     const session = await getServerSession(authOptions)
     console.log('API - Session:', session)
     
-    if (!session) {
-      console.log('API - No session found')
+    if (!session?.user?.id) {
+      console.log('API - No valid user found in session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -37,7 +44,7 @@ export async function GET() {
         })
         .sort({ date: -1 })
         .select('date')
-        .lean()
+        .lean() as AttendanceDocument | null;
 
         const result = {
           ...cls,
@@ -65,7 +72,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

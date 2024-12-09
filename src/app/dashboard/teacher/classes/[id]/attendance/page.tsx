@@ -63,7 +63,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
       console.log('Fetched attendance data:', data); // Debug log
       
       // Convert array to Map using studentId as key
-      const attendanceMap = new Map(
+      const attendanceMap = new Map<string, AttendanceRecord>(
         data.map((record: AttendanceRecord) => [record.studentId, record])
       );
       console.log('Attendance Map:', Object.fromEntries(attendanceMap)); // Debug log

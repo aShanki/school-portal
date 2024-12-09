@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema({
+interface IUser extends mongoose.Document {
+  name?: string;
+  email: string;
+  password: string;
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT';
+  parentIds?: mongoose.Types.ObjectId[];
+  createdAt: Date;
+}
+
+const UserSchema = new mongoose.Schema<IUser>({
   name: String,
   email: {
     type: String,
@@ -20,11 +29,11 @@ const UserSchema = new mongoose.Schema({
   parentIds: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
-    required: function(this: any) {
+    required: function(this: IUser) {
       return this.role === 'STUDENT'
     },
     validate: {
-      validator: function(v: any[]) {
+      validator: function(this: IUser, v: any[]) {
         return this.role !== 'STUDENT' || (Array.isArray(v) && v.length > 0);
       },
       message: 'Student must have at least one parent'
@@ -37,6 +46,6 @@ const UserSchema = new mongoose.Schema({
 })
 
 // Check if the model is already defined to prevent OverwriteModelError
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default User;

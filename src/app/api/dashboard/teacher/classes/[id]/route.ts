@@ -20,7 +20,7 @@ export async function GET(
     }
 
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -70,7 +70,10 @@ export async function GET(
   } catch (error) {
     console.error('Class GET error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch class', details: error.message }, 
+      { 
+        error: 'Failed to fetch class', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, 
       { status: 500 }
     )
   }

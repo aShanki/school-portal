@@ -50,7 +50,7 @@ export default function UsersPage() {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['users'])
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('User deleted successfully')
     },
     onError: () => {
@@ -86,7 +86,7 @@ export default function UsersPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users?.map((user) => (
+          {users?.map((user: User) => (
             <TableRow key={user._id}>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>

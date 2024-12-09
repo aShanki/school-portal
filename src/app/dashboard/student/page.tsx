@@ -4,35 +4,29 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import { fetchData } from '@/lib/data-fetching'
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
+TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 
-export default function StudentDashboard() {
+export default function StudentDashboardPage() {
+  const { data: session } = useSession()
   const router = useRouter()
-  const { data: session } = useSession({
-    required: true,
-    onUnauthenticated() {
-      router.push('/auth/signin')
-    }
-  })
 
-  const { data: classes, isLoading } = useQuery({
-    queryKey: ['studentClasses'],
-    queryFn: async () => {
-      const res = await fetch('/api/dashboard/student/classes')
-      if (!res.ok) throw new Error('Failed to fetch classes')
-      return res.json()
-    },
+  const { data: classes, isLoading } = useQuery<any[]>({
+    queryKey: ['classes'],
+    queryFn: () => fetchData('/api/dashboard/student/classes'),
     enabled: !!session
   })
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
 
   return (
     <div className="p-6 space-y-6">

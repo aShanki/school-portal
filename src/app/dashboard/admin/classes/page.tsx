@@ -1,5 +1,13 @@
 'use client'
 
+interface Class {
+  _id: string
+  name: string
+  subject: string
+  teacherId?: { name: string }
+  studentIds?: string[]
+}
+
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
@@ -33,7 +41,7 @@ export default function ClassesPage() {
     }
   })
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [selectedClass, setSelectedClass] = useState(null)
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null)
   const queryClient = useQueryClient()
 
   const { data: classes, isLoading, error } = useQuery({
@@ -54,7 +62,7 @@ export default function ClassesPage() {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['classes'])
+      queryClient.invalidateQueries({ queryKey: ['classes'] })
       toast.success('Class deleted successfully')
     },
     onError: () => {
@@ -112,7 +120,7 @@ export default function ClassesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {classes?.map((cls) => (
+          {classes?.map((cls: Class) => (
             <TableRow key={cls._id}>
               <TableCell>{cls.name}</TableCell>
               <TableCell>{cls.teacherId?.name}</TableCell>

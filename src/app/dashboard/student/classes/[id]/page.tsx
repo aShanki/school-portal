@@ -10,6 +10,20 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+interface ClassData {
+  name: string;
+  assignments?: Array<{
+    _id: string;
+    name: string;
+    description: string;
+    totalPoints: number;
+  }>;
+  grades?: Array<{
+    assignmentId: string;
+    points: number;
+  }>;
+}
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -22,7 +36,7 @@ export default async function ClassDetailsPage({ params }: PageProps) {
     redirect('/auth/signin')
   }
 
-  const classData = await fetchData(`/api/dashboard/student/classes/${id}`)
+  const classData = await fetchData<ClassData>(`/api/dashboard/student/classes/${id}`)
 
   return (
     <div className="p-6 space-y-6">

@@ -14,6 +14,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+interface ClassData {
+  _id: string
+  name: string
+  subject: string
+  studentIds: string[]
+}
+
 export default function TeacherClassesPage() {
   const { data: session } = useSession({
     required: true,
@@ -23,7 +30,7 @@ export default function TeacherClassesPage() {
   })
   const router = useRouter()
 
-  const { data: classes, isLoading } = useQuery({
+  const { data: classes, isLoading } = useQuery<ClassData[]>({
     queryKey: ['teacherClasses'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/teacher/classes')
@@ -48,7 +55,7 @@ export default function TeacherClassesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {classes?.map((cls) => (
+          {classes?.map((cls: ClassData) => (
             <TableRow key={cls._id}>
               <TableCell>{cls.name}</TableCell>
               <TableCell>{cls.subject}</TableCell>

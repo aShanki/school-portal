@@ -12,13 +12,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
-const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  category: z.enum(['Homework', 'Seatwork', 'Unit Test', 'Term Test', 'Research Work']),
-  totalPoints: z.number().min(0, 'Points must be positive'),
-  description: z.string().optional()
-})
-
 const ASSIGNMENT_CATEGORIES = [
   'Homework',
   'Seatwork',
@@ -26,6 +19,15 @@ const ASSIGNMENT_CATEGORIES = [
   'Term Test',
   'Research Work'
 ] as const
+
+type AssignmentCategory = typeof ASSIGNMENT_CATEGORIES[number]
+
+const formSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  category: z.enum(ASSIGNMENT_CATEGORIES),
+  totalPoints: z.number().min(0, 'Points must be positive'),
+  description: z.string().optional()
+})
 
 export function CreateAssignmentDialog({ 
   classId, 
@@ -98,7 +100,7 @@ export function CreateAssignmentDialog({
             <label>Category</label>
             <Select
               value={form.watch('category')}
-              onValueChange={(value) => form.setValue('category', value)}
+              onValueChange={(value: AssignmentCategory) => form.setValue('category', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />

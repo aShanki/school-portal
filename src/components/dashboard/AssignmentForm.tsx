@@ -10,7 +10,7 @@ export default function AssignmentForm() {
   const [totalPoints, setTotalPoints] = useState(100)
   const queryClient = useQueryClient()
 
-  const { mutate, isLoading } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async (data: { name: string; description: string; category: string; totalPoints: number }) => {
       const res = await fetch('/api/assignments', {
         method: 'POST',
@@ -87,10 +87,10 @@ export default function AssignmentForm() {
       </div>
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isPending}
         className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
       >
-        {isLoading ? 'Creating...' : 'Create Assignment'}
+        {isPending ? 'Creating...' : 'Create Assignment'}
       </button>
     </form>
   )

@@ -8,6 +8,59 @@ import Grade from '@/models/Grade'
 import Assignment from '@/models/Assignment'
 import mongoose from 'mongoose'
 
+interface IClass {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  subject: string;
+  studentIds: mongoose.Types.ObjectId[];
+  teacherId: {
+    name: string;
+    email: string;
+  };
+}
+
+interface IGrade {
+  classId: mongoose.Types.ObjectId;
+  points: number;
+}
+
+interface IAssignment {
+  classId: mongoose.Types.ObjectId;
+  totalPoints: number;
+}
+
+interface IClassDocument {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  subject: string;
+  studentIds: mongoose.Types.ObjectId[];
+  teacherId: mongoose.Types.ObjectId;
+  __v: number;
+}
+
+interface IClassPopulated extends Omit<IClassDocument, 'teacherId'> {
+  teacherId: {
+    _id: mongoose.Types.ObjectId;
+    name: string;
+    email: string;
+  };
+}
+
+interface IGradeDocument {
+  _id: mongoose.Types.ObjectId;
+  classId: mongoose.Types.ObjectId;
+  studentId: mongoose.Types.ObjectId;
+  points: number;
+  __v: number;
+}
+
+interface IAssignmentDocument {
+  _id: mongoose.Types.ObjectId;
+  classId: mongoose.Types.ObjectId;
+  totalPoints: number;
+  __v: number;
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -47,20 +100,20 @@ export async function GET(
     const classes = await Class.find({
       studentIds: childId
     })
-    .populate('teacherId', 'name email')
-    .lean()
+    .populate<{ teacherId: { name: string; email: string } }>('teacherId', 'name email')
+    .lean<IClassPopulated[]>()
 
     // Get grades and assignments for all classes
     const grades = await Grade.find({
       studentId: childId
-    }).lean()
+    }).lean<IGradeDocument[]>()
 
     const assignments = await Assignment.find({
       classId: { $in: classes.map(c => c._id) }
-    }).lean()
+    }).lean<IAssignmentDocument[]>()
 
     // Calculate stats per class
-    const classStats = await Promise.all(classes.map(async (cls) => {
+    const classStats = await Promise.all(classes.map(async (cls: IClass) => {
       const classGrades = grades.filter(g => g.classId.toString() === cls._id.toString())
       const classAssignments = assignments.filter(a => a.classId.toString() === cls._id.toString())
       

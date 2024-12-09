@@ -25,6 +25,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 
+interface User {
+  _id: string
+  name: string
+  email: string
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT'
+}
+
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Must be a valid email'),
@@ -83,7 +90,7 @@ export function CreateUserDialog({
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['users'])
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success(user ? 'User updated successfully' : 'User created successfully')
       form.reset()
       onOpenChange(false)

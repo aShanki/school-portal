@@ -77,6 +77,10 @@ interface GradesTableProps {
 export function GradesTable({ classData, classId }: GradesTableProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  
+  // Add query key type
+  type ClassQueryKey = ['class', string]
+  
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [localGrades, setLocalGrades] = useState<Record<string, string>>({})
   const [editingGrades, setEditingGrades] = useState<Record<string, boolean>>({})
@@ -98,6 +102,12 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
       setLocalGrades(initialGrades)
     }
   }, [classData?.grades])
+
+  // Add helper type for new grade
+  type NewGrade = Omit<Grade, '_id' | 'updatedAt'> & {
+    _id?: string;
+    updatedAt?: string;
+  }
 
   const gradeMutation = useMutation({
     mutationFn: async ({ studentId, assignmentId, points }: { 
@@ -124,27 +134,42 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
       return res.json()
     },
     onMutate: async ({ studentId, assignmentId, points }) => {
-      // Cancel any outgoing refetches to avoid overwriting optimistic update
-      await queryClient.cancelQueries(['class', classId])
+      const queryKey: ClassQueryKey = ['class', classId]
+      
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey })
 
       // Snapshot the previous value
-      const previousData = queryClient.getQueryData(['class', classId])
+      const previousData = queryClient.getQueryData<typeof classData>(queryKey)
 
-      // Optimistically update the grade
-      queryClient.setQueryData(['class', classId], (old: any) => ({
-        ...old,
-        grades: old.grades?.map((g: Grade) => 
-          g.studentId === studentId && g.assignmentId === assignmentId
-            ? { ...g, points }
-            : g
-        ) || [...(old.grades || []), { studentId, assignmentId, points }]
-      }))
+      // Create a new grade with required fields
+      const newGrade: NewGrade = {
+        studentId,
+        assignmentId,
+        points,
+        totalPoints: previousData?.assignments.find(a => a._id === assignmentId)?.totalPoints || 0,
+        grade: (points / (previousData?.assignments.find(a => a._id === assignmentId)?.totalPoints || 1)) * 100,
+      }
+
+      // Optimistically update
+      queryClient.setQueryData<typeof classData>(queryKey, (old) => {
+        if (!old) return old
+
+        return {
+          ...old,
+          grades: old.grades.map((g: Grade) => 
+            g.studentId === studentId && g.assignmentId === assignmentId
+              ? { ...g, points }
+              : g
+          ) || [...old.grades, newGrade as Grade]
+        }
+      })
 
       return { previousData }
     },
     onError: (err, variables, context) => {
-      // Revert the optimistic update
-      queryClient.setQueryData(['class', classId], context?.previousData)
+      const queryKey: ClassQueryKey = ['class', classId]
+      queryClient.setQueryData(queryKey, context?.previousData)
       toast({
         variant: "destructive",
         title: "Error updating grade",
@@ -152,8 +177,8 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
       })
     },
     onSuccess: () => {
-      // Invalidate and refetch the class data
-      queryClient.invalidateQueries(['class', classId])
+      const queryKey: ClassQueryKey = ['class', classId]
+      queryClient.invalidateQueries({ queryKey })
       toast({
         title: "Grade updated successfully"
       })

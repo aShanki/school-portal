@@ -1,6 +1,42 @@
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 import ClassDetailsClient from './ClassDetailsClient'
+import { Types } from 'mongoose'
+
+interface Teacher {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface Student {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface ClassData {
+  _id: string;
+  name: string;
+  subject: string;
+  teacherId: Teacher;
+  studentIds: Student[];
+}
+
+interface User {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+}
+
+interface ClassDocument {
+  _id: Types.ObjectId;
+  name: string;
+  subject: string;
+  teacherId: User;
+  studentIds: User[];
+  [key: string]: any;
+}
 
 export default async function ClassDetailsPage(
   props: {
@@ -10,27 +46,30 @@ export default async function ClassDetailsPage(
   const params = await props.params;
   await connectToDb()
 
-  const classData = await Class.findById(params.id)
+  const classData = (await Class.findById(params.id)
     .populate('teacherId', 'name email')
     .populate('studentIds', 'name email')
-    .lean()
+    .lean()) as unknown as ClassDocument
 
   if (!classData) {
     throw new Error('Class not found')
   }
 
-  // Convert MongoDB document to plain object and ensure proper ID handling
-  const serializedData = {
+  if (!classData.teacherId) {
+    throw new Error('Class must have a teacher')
+  }
+
+  const serializedData: ClassData = {
     ...classData,
     _id: classData._id.toString(),
-    studentIds: classData.studentIds.map((student: any) => ({
+    studentIds: classData.studentIds.map((student: User) => ({
       ...student,
       _id: student._id.toString()
     })),
-    teacherId: classData.teacherId ? {
+    teacherId: {
       ...classData.teacherId,
       _id: classData.teacherId._id.toString()
-    } : null
+    }
   }
 
   return <ClassDetailsClient initialData={serializedData} classId={params.id} />
