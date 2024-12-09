@@ -72,9 +72,10 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      else if (url.startsWith(baseUrl)) return url
-      return baseUrl
+      // Only allow internal redirects
+      if (url.startsWith(baseUrl)) return url
+      // Default to dashboard for external redirects
+      return `${baseUrl}/dashboard`
     },
   },
   pages: {

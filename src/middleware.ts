@@ -6,6 +6,11 @@ export default withAuth(
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth/')
     const isAuthed = !!req.nextauth.token
 
+    // Don't redirect on API routes
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+      return NextResponse.next()
+    }
+
     // Redirect authenticated users away from auth pages
     if (isAuthPage && isAuthed) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
@@ -15,7 +20,12 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token, req }) => {
+        if (req.nextUrl.pathname.startsWith('/auth/')) {
+          return true
+        }
+        return !!token
+      }
     }
   }
 )
@@ -23,6 +33,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/auth/:path*'
+    '/auth/:path*',
+    '/api/auth/:path*'
   ]
 }

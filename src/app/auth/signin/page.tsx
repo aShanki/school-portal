@@ -14,23 +14,23 @@ export default function SignIn() {
     event.preventDefault()
     setIsLoading(true)
 
-    const formData = new FormData(event.currentTarget)
-
     try {
-      const response = await signIn('credentials', {
+      const formData = new FormData(event.currentTarget)
+      const result = await signIn('credentials', {
         email: formData.get('email'),
         password: formData.get('password'),
-        redirect: false
+        redirect: false,
+        callbackUrl: '/dashboard'
       })
 
-      if (response?.error) {
+      if (result?.error) {
         toast({
           variant: "destructive",
           title: "Error",
           description: "Invalid credentials"
         })
       } else {
-        router.push('/dashboard')
+        router.replace('/dashboard')
       }
     } catch (error) {
       toast({
