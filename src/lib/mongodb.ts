@@ -18,7 +18,7 @@ let client;
 let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === 'development') {
-  let globalWithMongo = global as typeof globalThis & {
+  const globalWithMongo = global as typeof globalThis & {
     _mongoClientPromise?: Promise<MongoClient>;
   };
 
@@ -36,8 +36,14 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
-// Mongoose connection caching
-let cached = global as any;
+interface GlobalWithMongoose {
+  mongoose?: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  };
+}
+
+const cached = global as GlobalWithMongoose;
 if (!cached.mongoose) {
   cached.mongoose = { conn: null, promise: null };
 }

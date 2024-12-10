@@ -42,6 +42,7 @@ export default function ClassesPage() {
   })
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
+  const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const { data: classes, isLoading, error } = useQuery({
@@ -127,28 +128,37 @@ export default function ClassesPage() {
               <TableCell>{cls.subject}</TableCell>
               <TableCell>{cls.studentIds?.length || 0}</TableCell>
               <TableCell>
-                <DropdownMenu>
+                <DropdownMenu open={!!selectedMenu} onOpenChange={setSelectedMenu}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      data-testid={`class-menu-${cls._id}`}
+                      onClick={() => setSelectedMenu(cls._id)}
+                      aria-label={`Actions for ${cls.name}`}
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => {
-                      setSelectedClass(cls)
-                      setShowCreateDialog(true)
-                    }}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(cls._id)}
-                      className="text-red-600"
-                    >
-                      <Trash className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                  {selectedMenu === cls._id && (
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedClass(cls)
+                        setShowCreateDialog(true)
+                      }}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        data-testid={`delete-class-${cls._id}`}
+                        onClick={() => handleDelete(cls._id)}
+                        className="text-red-600"
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  )}
                 </DropdownMenu>
               </TableCell>
             </TableRow>

@@ -1,6 +1,3 @@
-import { cookies } from 'next/headers'
-import { headers } from 'next/headers'
-
 export interface FetchError extends Error {
   statusCode?: number;
 }
@@ -12,7 +9,7 @@ function getBaseUrl() {
   return ''
 }
 
-export async function fetchWithAuth(path: string, session: any, options: RequestInit = {}): Promise<any> {
+export async function fetchWithAuth<T = unknown>(path: string, session: { user?: { id?: string; role?: string } } | null, options: RequestInit = {}): Promise<T> {
   try {
     const baseUrl = getBaseUrl()
     const url = baseUrl ? new URL(path, baseUrl).toString() : path

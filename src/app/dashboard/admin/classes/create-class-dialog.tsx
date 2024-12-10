@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -111,6 +111,9 @@ export function CreateClassDialog({
           <DialogTitle>
             {classToEdit ? 'Edit Class' : 'Create New Class'}
           </DialogTitle>
+          <DialogDescription>
+            Add a new class to the system.
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

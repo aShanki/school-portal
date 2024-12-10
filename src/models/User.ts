@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema<IUser>({
       return this.role === 'STUDENT'
     },
     validate: {
-      validator: function(this: IUser, v: any[]) {
+      validator: function(this: IUser, v: mongoose.Types.ObjectId[]) {
         return this.role !== 'STUDENT' || (Array.isArray(v) && v.length > 0);
       },
       message: 'Student must have at least one parent'

@@ -31,6 +31,7 @@ interface User {
 export default function UsersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const queryClient = useQueryClient()
   
   const { data: users } = useQuery({
@@ -92,25 +93,34 @@ export default function UsersPage() {
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
-                <DropdownMenu>
+                <DropdownMenu open={!!selectedMenu} onOpenChange={setSelectedMenu}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      data-testid={`user-menu-${user._id}`}
+                      onClick={() => setSelectedMenu(user._id)}
+                      aria-label={`Actions for ${user.name}`}
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(user)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(user._id)}
-                      className="text-red-600"
-                    >
-                      <Trash className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                  {selectedMenu === user._id && (
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(user)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(user._id)}
+                        className="text-red-600"
+                        data-testid={`delete-user-${user._id}`}
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  )}
                 </DropdownMenu>
               </TableCell>
             </TableRow>
