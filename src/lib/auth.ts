@@ -24,34 +24,40 @@ interface ExtendedSession extends Session {
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
+      id: 'credentials',
       name: 'credentials',
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log('Attempting sign in...')
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Missing credentials')
         }
 
-        await connectToDb()
+        try {
+          await connectToDb()
+          const user = await User.findOne({ email: credentials.email }).select('+password')
+          
+          if (!user) {
+            throw new Error('Invalid credentials')
+          }
 
-        const user = await User.findOne({ email: credentials.email })
-        if (!user) {
-          throw new Error('Invalid credentials')
-        }
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+          if (!isValid) {
+            throw new Error('Invalid credentials')
+          }
 
-        const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) {
-          throw new Error('Invalid credentials')
-        }
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role
+          // Return only necessary user data
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          throw new Error('Authentication failed')
         }
       }
     })
@@ -90,5 +96,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
-  }
+  },
+  debug: process.env.NODE_ENV === 'development'
 }

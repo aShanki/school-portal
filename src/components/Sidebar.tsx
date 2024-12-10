@@ -16,7 +16,8 @@ export default function Sidebar() {
       { href: '/dashboard/admin/settings', label: 'System Settings' }
     ],
     TEACHER: [
-      { href: '/dashboard/teacher/classes', label: 'Classes' }
+      { href: '/dashboard/teacher/classes', label: 'Classes' },
+      { href: '/dashboard/teacher/attendance', label: 'Attendance' }
     ],
     STUDENT: [
       { href: '/dashboard/student', label: 'Dashboard' }

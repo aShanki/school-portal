@@ -1,40 +1,38 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { connectToDb } from '@/lib/mongodb'
+import { NextRequest, NextResponse } from 'next/server'
+import dbConnect from '@/lib/dbConnect'
 import Attendance from '@/models/Attendance'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    await dbConnect()
     const { searchParams } = new URL(request.url)
-    const date = searchParams.get('date')
-    const { id } = await context.params
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+    const { id } = await params
 
-    await connectToDb()
-    const attendance = await Attendance.find({
+    const records = await Attendance.find({
       classId: id,
-      date: new Date(date as string)
+      date: {
+        $gte: new Date(startDate!),
+        $lte: new Date(endDate!)
+      }
     })
-    return NextResponse.json(attendance)
+
+    return NextResponse.json(records)
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch attendance' },
-      { status: 500 }
-    )
+    console.error('Attendance fetch error:', error)
+    return NextResponse.json({ error: 'Failed to fetch attendance' }, { status: 500 })
   }
 }
 
 export async function POST(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -43,8 +41,8 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { id } = await context.params
-    await connectToDb()
+    const { id } = await params
+    await dbConnect()
 
     const attendance = await Attendance.findOneAndUpdate(
       {

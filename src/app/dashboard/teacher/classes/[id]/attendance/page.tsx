@@ -58,15 +58,19 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
 
   const fetchAttendance = async () => {
     try {
-      const response = await fetch(`/api/dashboard/teacher/classes/${id}/attendance?date=${selectedDate.toISOString()}`);
-      const data = await response.json();
-      console.log('Fetched attendance data:', data); // Debug log
+      // Format the date to start of day to match records
+      const startDate = startOfDay(selectedDate).toISOString();
+      const endDate = new Date(startOfDay(selectedDate).setHours(23, 59, 59, 999)).toISOString();
       
-      // Convert array to Map using studentId as key
+      const response = await fetch(
+        `/api/dashboard/teacher/classes/${id}/attendance?startDate=${startDate}&endDate=${endDate}`
+      );
+      const data = await response.json();
+      console.log('Fetched attendance data:', data);
+      
       const attendanceMap = new Map<string, AttendanceRecord>(
         data.map((record: AttendanceRecord) => [record.studentId, record])
       );
-      console.log('Attendance Map:', Object.fromEntries(attendanceMap)); // Debug log
       setAttendance(attendanceMap);
     } catch (error) {
       console.error('Failed to fetch attendance:', error);

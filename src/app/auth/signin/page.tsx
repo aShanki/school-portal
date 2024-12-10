@@ -16,27 +16,32 @@ export default function SignIn() {
 
     try {
       const formData = new FormData(event.currentTarget)
-      const result = await signIn('credentials', {
+      const credentials = {
         email: formData.get('email'),
         password: formData.get('password'),
         redirect: false,
         callbackUrl: '/dashboard'
-      })
+      }
 
-      if (result?.error) {
+      const result = await signIn('credentials', credentials)
+
+      if (!result?.ok) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Invalid credentials"
+          description: result?.error || "Failed to sign in"
         })
-      } else {
-        router.replace('/dashboard')
+        return
       }
+
+      // Redirect to dashboard (role-based routing is handled there)
+      router.replace('/dashboard')
+
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Something went wrong"
+        description: "An unexpected error occurred"
       })
     } finally {
       setIsLoading(false)
@@ -45,7 +50,13 @@ export default function SignIn() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
+      <form 
+        onSubmit={handleSubmit} 
+        method="POST"
+        action="/api/auth/callback/credentials"
+        noValidate
+        className="space-y-4 w-full max-w-sm"
+      >
         <h1 className="text-2xl font-bold text-center">Sign In</h1>
         <div>
           <input
@@ -60,13 +71,13 @@ export default function SignIn() {
           <input
             name="password"
             type="password"
-            placeholder="Password"
+            placeholder="Password" 
             required
             className="w-full p-2 border rounded"
           />
         </div>
         <Button 
-          type="submit" 
+          type="submit"
           className="w-full"
           disabled={isLoading}
         >

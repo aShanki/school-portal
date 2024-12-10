@@ -5,7 +5,7 @@ import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 import Assignment from '@/models/Assignment'
 import Grade from '@/models/Grade'
-import { isValidObjectId, Types } from 'mongoose'  // Add Types import
+import { isValidObjectId, Types } from 'mongoose'
 
 export async function GET(
   request: Request,
@@ -20,12 +20,16 @@ export async function GET(
     }
 
     const session = await getServerSession(authOptions)
+    
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 })
+    }
+
+    if (session.user.role !== 'TEACHER') {
+      return NextResponse.json({ error: 'Unauthorized - Not a teacher' }, { status: 403 })
     }
 
     await connectToDb()
-    console.log('Connected to DB')
     
     const classData = await Class.findById(id)
       .populate('studentIds', 'name email')
@@ -44,21 +48,10 @@ export async function GET(
       classId: new Types.ObjectId(id) 
     }).lean()
 
-    // Debug existing grades
-    const allGrades = await Grade.find({}).lean()
-    console.log('All grades in DB:', allGrades)
-
-    // Then get grades with explicit ObjectId query
-    console.log('Querying grades with classId:', id)
+    // Get grades without debug logging
     const grades = await Grade.find({ 
       classId: new Types.ObjectId(id)
     }).lean()
-    
-    console.log('Found grades for class:', {
-      query: { classId: new Types.ObjectId(id) },
-      count: grades?.length,
-      grades
-    })
 
     const responseData = {
       ...classData.toObject(),
@@ -68,7 +61,6 @@ export async function GET(
 
     return NextResponse.json(responseData)
   } catch (error) {
-    console.error('Class GET error:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch class', 
