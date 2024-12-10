@@ -14,18 +14,10 @@ export default function TeacherLayout({
   const router = useRouter()
 
   useEffect(() => {
-    console.log('=== TeacherLayout ===')
-    console.log('Status:', status)
-    console.log('Session:', JSON.stringify(session, null, 2))
-    console.log('User role:', session?.user?.role)
-    console.log('Is authenticated:', status === 'authenticated')
-    
     if (status === 'authenticated') {
       if (!session?.user?.role) {
-        console.log('No role found, redirecting to dashboard')
         router.push('/dashboard')
       } else if (session.user.role !== 'TEACHER') {
-        console.log('Not a teacher, redirecting to dashboard')
         router.push('/dashboard')
       }
     }

@@ -47,30 +47,20 @@ interface PageProps {
 
 export default async function ClassDetailsPage({ params }: PageProps) {
   const { id } = await params
-  console.log('=== ClassDetailsPage ===')
-  console.log('Class ID:', id)
-  
   const session = await getServerSession(authOptions)
-  console.log('Raw session data:', session)
-  console.log('Session user:', session?.user)
-  console.log('Session user role:', session?.user?.role)
   
   if (!session?.user) {
-    console.log('No user in session')
     redirect('/auth/signin')
   }
 
   if (!session.user.role) {
-    console.log('No role in session user')
     redirect('/auth/signin')
   }
 
   if (session.user.role !== 'TEACHER') {
-    console.log('Role is not TEACHER:', session.user.role)
     redirect('/auth/signin')
   }
 
-  console.log('Fetching class data...')
   try {
     const classData = (await fetchServerData(`/api/dashboard/teacher/classes/${id}`, {
       cache: 'no-store',
@@ -79,11 +69,9 @@ export default async function ClassDetailsPage({ params }: PageProps) {
         'x-user-role': session.user.role || ''
       } satisfies Record<string, string>
     })) as ClassData
-    console.log('Class data received:', Object.keys(classData))
 
     return <GradesTable classData={classData} classId={id} />
   } catch (error) {
-    console.error('Failed to fetch class data:', error)
     redirect('/dashboard')
   }
 }
