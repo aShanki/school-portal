@@ -12,10 +12,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
+  const params = await context.params
+  const { id } = params
+
   try {
-    const params = await context.params
-    const { id } = params
-    
     console.log('[API] Class request:', { 
       id,
       method: request.method,
@@ -84,7 +84,7 @@ export async function GET(
     })
   } catch (error) {
     console.error('[API] Error:', {
-      id: context.params.id,
+      id,  // Use the extracted id variable instead of context.params.id
       error,
       responseTime: Date.now() - startTime
     })
