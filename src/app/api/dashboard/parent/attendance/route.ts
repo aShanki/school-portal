@@ -19,15 +19,12 @@ export async function GET() {
 
     await connectToDb()
 
-    console.log('Looking for children with parentId:', session.user.id)
     const parentId = new Types.ObjectId(session.user.id)
 
     const children = await User.find({
       role: 'STUDENT',
       parentIds: parentId
     }).select('name email').lean()
-
-    console.log('Found children:', children)
 
     if (!children.length) {
       return NextResponse.json({
@@ -38,10 +35,7 @@ export async function GET() {
         }
       })
     }
-
-    // Add debug logging
-    console.log('Found children:', children.length)
-
+    
     // Get attendance data for each child
     const childrenWithAttendance = await Promise.all(children.map(async (child) => {
       // Get all classes for this child

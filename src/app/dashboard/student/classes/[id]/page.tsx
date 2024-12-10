@@ -36,7 +36,7 @@ export default async function ClassDetailsPage({ params }: PageProps) {
     redirect('/auth/signin')
   }
 
-  const classData = await fetchData<ClassData>(`/api/dashboard/student/classes/${id}`)
+  const classData = (await fetchData(`/api/dashboard/student/classes/${id}`)) as ClassData
 
   return (
     <div className="p-6 space-y-6">

@@ -64,17 +64,23 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      console.log('JWT Callback - Input:', { token, user })
       if (user) {
         token.id = user.id
         token.role = user.role
       }
+      console.log('JWT Callback - Output:', token)
       return token
     },
-    async session({ session, token }): Promise<Session> {
-      if (token && session.user) {
+    async session({ session, token }) {  // Remove user parameter, add token type
+      console.log('Session Callback - Input:', { session, token })
+      
+      if (session?.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
       }
+      
+      console.log('Session Callback - Output:', session)
       return session
     },
     async redirect({ url, baseUrl }) {

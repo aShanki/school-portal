@@ -27,7 +27,6 @@ export async function GET() {
 
     await connectToDb()
     
-    console.log('Looking for children with parentId:', session.user.id)
     const parentId = new Types.ObjectId(session.user.id)
 
     const children = await User.find({
@@ -36,8 +35,6 @@ export async function GET() {
     })
     .select('name email')
     .lean()
-
-    console.log('Found children:', children)
 
     let totalGrades = 0
     let totalAttendance = 0

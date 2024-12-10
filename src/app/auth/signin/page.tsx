@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,8 @@ export default function SignIn() {
       }
 
       const result = await signIn('credentials', credentials)
+      const session = await getSession()
+      console.log('Post-signin session:', session)
 
       if (!result?.ok) {
         toast({
