@@ -11,24 +11,39 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now()
   try {
     const params = await context.params
     const { id } = params
     
+    console.log('[API] Class request:', { 
+      id,
+      method: request.method,
+      url: request.url
+    })
+
     if (!isValidObjectId(id)) {
       return NextResponse.json({ error: 'Invalid class ID' }, { status: 400 })
     }
 
+    // Get auth from either session or headers
     const session = await getServerSession(authOptions)
+    const authHeader = request.headers.get('Authorization')
+    const userId = session?.user?.id || authHeader?.replace('Bearer ', '')
+    const userRole = session?.user?.role || request.headers.get('x-user-role')
     
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid session' }, 
-        { status: 401 }
-      )
+    console.log('[API] Auth check:', { 
+      hasSession: !!session,
+      hasAuthHeader: !!authHeader,
+      userId,
+      userRole 
+    })
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'TEACHER') {
+    if (userRole !== 'TEACHER') {
       return NextResponse.json({ error: 'Unauthorized - Not a teacher' }, { status: 403 })
     }
 
@@ -42,7 +57,7 @@ export async function GET(
       return NextResponse.json({ error: 'Class not found' }, { status: 404 })
     }
 
-    if (classData.teacherId.toString() !== session.user.id) {
+    if (classData.teacherId.toString() !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -54,12 +69,25 @@ export async function GET(
       classId: new Types.ObjectId(id)
     }).lean()
 
+    console.log('[API] Response:', {
+      id,
+      found: !!classData,
+      assignmentsCount: assignments.length,
+      gradesCount: grades.length,
+      responseTime: Date.now() - startTime
+    })
+
     return NextResponse.json({
       ...classData.toObject(),
       assignments,
       grades
     })
   } catch (error) {
+    console.error('[API] Error:', {
+      id: context.params.id,
+      error,
+      responseTime: Date.now() - startTime
+    })
     return NextResponse.json(
       { error: 'Failed to fetch class' }, 
       { status: 500 }

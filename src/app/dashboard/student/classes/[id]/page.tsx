@@ -1,6 +1,11 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import { fetchData } from '@/lib/data-fetching'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import { useRouter } from 'next/navigation'
+import { use } from 'react'
 import {
   Table,
   TableBody,
@@ -25,22 +30,56 @@ interface ClassData {
 }
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }> | { id: string }
 }
 
-export default async function ClassDetailsPage({ params }: PageProps) {
-  const { id } = await params
-  const session = await getServerSession()
-  
-  if (!session) {
-    redirect('/auth/signin')
+export default function ClassDetailsPage({ params }: PageProps) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const resolvedParams = use(params)
+  const id = resolvedParams.id
+
+  const { data: classDetails, isLoading, error } = useQuery({
+    queryKey: ['class', id],
+    queryFn: () => fetchData(`/api/dashboard/student/classes/${id}`),
+    enabled: !!session && !!id,
+    retry: 1,
+    onError: (error: any) => {
+      if (error.statusCode === 401) {
+        router.push('/api/auth/signin')
+      }
+    }
+  })
+
+  const calculateTotalGrade = () => {
+    if (!classDetails?.assignments?.length || !classDetails?.grades?.length) return 0
+    
+    const totalPoints = classDetails.assignments.reduce((sum, assignment) => 
+      sum + assignment.totalPoints, 0)
+    
+    const earnedPoints = classDetails.grades.reduce((sum, grade) => 
+      sum + grade.points, 0)
+    
+    return Math.round((earnedPoints / totalPoints) * 100)
   }
 
-  const classData = (await fetchData(`/api/dashboard/student/classes/${id}`)) as ClassData
+  if (status === 'loading' || isLoading) {
+    return <LoadingSpinner />
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-red-500">
+          {error instanceof Error ? error.message : 'Failed to load class details'}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">{classData?.name}</h1>
+      <h1 className="text-2xl font-bold">{classDetails?.name}</h1>
 
       <Table>
         <TableHeader>
@@ -51,8 +90,8 @@ export default async function ClassDetailsPage({ params }: PageProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {classData?.assignments?.map((assignment) => {
-            const grade = classData.grades?.find(
+          {classDetails?.assignments?.map((assignment) => {
+            const grade = classDetails.grades?.find(
               (g) => g.assignmentId === assignment._id
             )
             return (
@@ -65,6 +104,14 @@ export default async function ClassDetailsPage({ params }: PageProps) {
               </TableRow>
             )
           })}
+          <TableRow>
+            <TableCell colSpan={3} className="border-t-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold">Total Grade:</span>
+                <span className="font-bold">{calculateTotalGrade()}%</span>
+              </div>
+            </TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </div>

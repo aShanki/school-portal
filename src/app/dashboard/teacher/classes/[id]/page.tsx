@@ -1,8 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getToken } from 'next-auth/jwt'
 import { redirect } from 'next/navigation'
-import { fetchServerData } from '@/lib/data-fetching'
+import { fetchWithAuth } from '@/lib/data-fetching'
 import { GradesTable } from '@/components/dashboard/GradesTable'
 
 interface Student {
@@ -46,9 +45,18 @@ interface PageProps {
 }
 
 export default async function ClassDetailsPage({ params }: PageProps) {
+  const requestId = Math.random().toString(36).substring(7)
+  console.log(`[Page ${requestId}] Loading class details:`, { params })
+  
   const { id } = await params
   const session = await getServerSession(authOptions)
   
+  console.log(`[Page ${requestId}] Auth check:`, {
+    hasSession: !!session,
+    userId: session?.user?.id,
+    userRole: session?.user?.role
+  })
+
   if (!session?.user) {
     redirect('/auth/signin')
   }
@@ -62,16 +70,30 @@ export default async function ClassDetailsPage({ params }: PageProps) {
   }
 
   try {
-    const classData = (await fetchServerData(`/api/dashboard/teacher/classes/${id}`, {
-      cache: 'no-store',
-      headers: {
-        'x-user-id': session.user.id || '',
-        'x-user-role': session.user.role || ''
-      } satisfies Record<string, string>
-    })) as ClassData
+    console.time(`[Page ${requestId}] Fetch class ${id}`)
+    const classData = (await fetchWithAuth(
+      `/api/dashboard/teacher/classes/${id}`,
+      session,
+      { cache: 'no-store' }
+    )) as ClassData
+    console.timeEnd(`[Page ${requestId}] Fetch class ${id}`)
+
+    console.log(`[Page ${requestId}] Class data loaded:`, {
+      id,
+      name: classData.name,
+      studentsCount: classData.studentIds.length,
+      assignmentsCount: classData.assignments.length
+    })
 
     return <GradesTable classData={classData} classId={id} />
   } catch (error) {
+    console.error(`[Page ${requestId}] Error loading class:`, { 
+      id, 
+      error,
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack 
+    })
     redirect('/dashboard')
   }
 }

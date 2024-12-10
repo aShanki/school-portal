@@ -1,56 +1,62 @@
 import { cookies } from 'next/headers'
+import { headers } from 'next/headers'
 
-type FetchError = {
-  message: string;
-  statusCode: number;
+export interface FetchError extends Error {
+  statusCode?: number;
 }
 
-function getBaseUrl(isInternal = false) {
-  // For server-side requests, prefer internal URL
-  if (typeof window === 'undefined' && isInternal) {
-    return process.env.NEXTAUTH_URL_INTERNAL || process.env.NEXTAUTH_URL
+function getBaseUrl() {
+  if (typeof window === 'undefined') {
+    return process.env.NEXTAUTH_URL_INTERNAL || 'http://localhost:3000'
   }
-  // For all other requests, use public URL
-  return process.env.NEXTAUTH_URL
+  return ''
 }
 
-export async function fetchData(path: string, options: RequestInit = {}): Promise<any> {
-  const isServer = typeof window === 'undefined'
-  const baseUrl = getBaseUrl()
-  const url = path.startsWith('http') ? path : `${baseUrl}${path}`
-
-  const headers = new Headers(options.headers || {})
-  headers.set('Content-Type', 'application/json')
-
+export async function fetchWithAuth(path: string, session: any, options: RequestInit = {}): Promise<any> {
   try {
+    const baseUrl = getBaseUrl()
+    const url = baseUrl ? new URL(path, baseUrl).toString() : path
+    
+    console.log('[fetchWithAuth] Request:', {
+      url,
+      hasSession: !!session,
+      userId: session?.user?.id,
+      userRole: session?.user?.role
+    })
+    
     const response = await fetch(url, {
       ...options,
-      headers,
-      credentials: 'include',
-    })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.user?.id || ''}`,
+        'x-user-role': session?.user?.role || '',
+        ...options.headers,
+      },
+    });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
+    if (!response.ok) {
+      console.error('[fetchWithAuth] Error Response:', {
+        status: response.status,
+        statusText: response.statusText
+      })
+      const error = new Error('API request failed') as FetchError;
+      error.statusCode = response.status;
+      throw error;
+    }
+
+    const data = await response.json()
+    console.log('[fetchWithAuth] Success Response:', {
+      path,
+      status: response.status,
+      dataKeys: Object.keys(data)
+    })
     return data;
   } catch (error) {
+    console.error('[fetchWithAuth] Error:', error);
     throw error;
   }
 }
 
-export async function fetchServerData(path: string, options: RequestInit = {}): Promise<any> {
-  const { cookies } = await import('next/headers')
-  const baseUrl = getBaseUrl(true)
-  const url = path.startsWith('http') ? path : `${baseUrl}${path}`
-  
-  const cookieStore = await cookies()
-  const sessionToken = cookieStore.get('next-auth.session-token')?.value
-  
-  const headers = new Headers(options.headers || {})
-  headers.set('Content-Type', 'application/json')
-  
-  if (sessionToken) {
-    headers.set('Cookie', `next-auth.session-token=${sessionToken}`)
-  }
-
-  return fetchData(url, { ...options, headers })
-}
+// Alias for backward compatibility
+export const fetchServerData = fetchWithAuth;
+export const fetchData = fetchWithAuth;

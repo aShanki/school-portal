@@ -24,22 +24,25 @@ export default function SignIn() {
       }
 
       const result = await signIn('credentials', credentials)
-      const session = await getSession()
-      console.log('Post-signin session:', session)
+      console.log('Sign-in result:', result) // Add this line for debugging
 
       if (!result?.ok) {
+        console.error('Sign-in error:', result)
         toast({
           variant: "destructive",
-          title: "Error",
-          description: result?.error || "Failed to sign in"
+          title: "Sign-in Failed",
+          description: result?.error || "Invalid credentials. Please try again."
         })
         return
       }
 
-      // Redirect to dashboard (role-based routing is handled there)
+      const session = await getSession()
+      console.log('User role:', session?.user?.role)
+
       router.replace('/dashboard')
 
     } catch (error) {
+      console.error('Unexpected error during sign-in:', error)
       toast({
         variant: "destructive",
         title: "Error",

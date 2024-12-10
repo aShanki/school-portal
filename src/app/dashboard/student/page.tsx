@@ -18,7 +18,7 @@ export default function StudentDashboardPage() {
   const { data: session } = useSession()
   const router = useRouter()
 
-  const { data: classes, isLoading } = useQuery<any[]>({
+  const { data: classes, isLoading, error } = useQuery<any[]>({
     queryKey: ['classes'],
     queryFn: () => fetchData('/api/dashboard/student/classes'),
     enabled: !!session
@@ -26,6 +26,10 @@ export default function StudentDashboardPage() {
 
   if (isLoading) {
     return <LoadingSpinner />
+  }
+
+  if (error) {
+    return <div>Error loading classes</div>
   }
 
   return (
@@ -49,7 +53,10 @@ export default function StudentDashboardPage() {
               <TableCell>
                 <button
                   className="text-blue-600 hover:text-blue-800"
-                  onClick={() => router.push(`/dashboard/student/classes/${cls._id}`)}
+                  onClick={() => {
+                    const classPath = `/dashboard/student/classes/${cls._id}`;
+                    router.push(classPath);
+                  }}
                 >
                   View Grades →
                 </button>

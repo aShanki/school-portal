@@ -40,47 +40,51 @@ export const authOptions: NextAuthOptions = {
           const user = await User.findOne({ email: credentials.email }).select('+password')
           
           if (!user) {
+            console.log('User not found:', credentials.email)
             throw new Error('Invalid credentials')
           }
 
           const isValid = await bcrypt.compare(credentials.password, user.password)
           if (!isValid) {
+            console.log('Invalid password for user:', credentials.email)
             throw new Error('Invalid credentials')
           }
 
-          // Return only necessary user data
+          console.log('Login successful for:', user.email, 'with role:', user.role)
+          
+          // Ensure role is included in the returned object
           return {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role || 'student' // Provide default role if missing
           }
         } catch (error) {
-          console.error('Auth error:', error)
-          throw new Error('Authentication failed')
+          console.error('Detailed auth error:', error)
+          throw error // Propagate the original error
         }
       }
     })
   ],
   callbacks: {
     async jwt({ token, user }) {
-      console.log('JWT Callback - Input:', { token, user })
+      
       if (user) {
         token.id = user.id
         token.role = user.role
       }
-      console.log('JWT Callback - Output:', token)
+      
       return token
     },
     async session({ session, token }) {  // Remove user parameter, add token type
-      console.log('Session Callback - Input:', { session, token })
+      
       
       if (session?.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
       }
       
-      console.log('Session Callback - Output:', session)
+      
       return session
     },
     async redirect({ url, baseUrl }) {
