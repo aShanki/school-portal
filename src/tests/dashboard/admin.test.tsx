@@ -141,6 +141,78 @@ describe('Users Management', () => {
 
     expect(window.confirm).toHaveBeenCalled()
   })
+
+  it.each([
+    {
+      role: 'TEACHER',
+      name: 'Test Teacher',
+      email: 'testteacher@teachers.com',
+      parentIds: []
+    },
+    {
+      role: 'ADMIN',
+      name: 'Test Admin',
+      email: 'testadmin@admins.com',
+      parentIds: []
+    },
+    {
+      role: 'PARENT',
+      name: 'Test Parent',
+      email: 'testparent@parents.com',
+      parentIds: []
+    },
+    {
+      role: 'STUDENT',
+      name: 'Test Student',
+      email: 'teststudent@students.com',
+      parentIds: ['6755b126a30771498e5e9a17', '6755b126a30771498e5e9a16']
+    }
+  ])('handles user creation for $role role', async ({ role, name, email, parentIds }) => {
+    const payload = {
+      name,
+      email,
+      password: 'password123',
+      role,
+      parentIds
+    }
+
+    const response = {
+      ...payload,
+      password: expect.any(String),
+      _id: expect.any(String),
+      createdAt: expect.any(String),
+      __v: 0
+    }
+
+    ;(fetch as jest.Mock).mockReset()
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => response
+    })
+
+    render(<UsersPage />, { wrapper })
+
+    const createButton = await screen.findByRole('button', { name: /create user/i })
+    fireEvent.click(createButton)
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: name } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: email } })
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: payload.password } })
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: role } })
+    if (role === 'STUDENT') {
+      fireEvent.change(screen.getByLabelText(/parent ids/i), { target: { value: parentIds.join(',') } })
+    }
+
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }))
+
+    await waitFor(() => {
+      const fetchCall = (fetch as jest.Mock).mock.calls[1]
+      expect(JSON.parse(fetchCall[1].body)).toEqual(payload)
+      expect(fetchCall[1].method).toBe('POST')
+      expect(fetchCall[1].headers['Content-Type']).toBe('application/json')
+    })
+  })
 })
 
 describe('Classes Management', () => {
@@ -153,28 +225,30 @@ describe('Classes Management', () => {
       studentIds: ['1', '2', '3']
     }
   ]
-
+  
   const mockTeachers = [
     { _id: '1', name: 'John Doe' }
   ]
-
+  
   beforeEach(() => {
-    ;(fetch as jest.Mock)
-      .mockImplementation((url) => {
-        if (url.includes('/classes')) {
+    ;(fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/classes')) {
           return Promise.resolve({
             ok: true,
-            json: async () => mockClasses
-          })
+            json: async () => mockClasses,
+          });
         }
-        if (url.includes('/teachers')) {
+        if (url.includes('/api/teachers')) {
           return Promise.resolve({
             ok: true,
-            json: async () => mockTeachers
-          })
+            json: async () => mockTeachers,
+          });
         }
-        return Promise.reject(new Error('Not found'))
-      })
+        return Promise.resolve({
+          ok: false,
+          json: async () => ({})
+        });
+      });
   })
 
   it('renders class list correctly', async () => {
