@@ -62,7 +62,10 @@ export default function TeacherClassesPage() {
               <TableCell>{cls.studentIds?.length || 0}</TableCell>
               <TableCell>
                 <Button
+                  data-testid="view-button"
                   variant="ghost"
+                  aria-label="view"
+                  role="button"
                   onClick={() => router.push(`/dashboard/teacher/classes/${cls._id}`)}
                 >
                   View
