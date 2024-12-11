@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -125,9 +125,12 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent aria-describedby="dialog-description">
         <DialogHeader>
           <DialogTitle>{user ? 'Edit User' : 'Create New User'}</DialogTitle>
+          <DialogDescription>
+            Fill in the details to {user ? 'update' : 'create'} a user.
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
@@ -181,13 +184,8 @@ export function CreateUserDialog({
                 <FormItem>
                   <FormLabel>Role</FormLabel>
                   <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value)
-                      if (value !== 'STUDENT') {
-                        form.setValue('parentIds', [])
-                      }
-                    }} 
-                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -195,10 +193,15 @@ export function CreateUserDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
-                      <SelectItem value="TEACHER">Teacher</SelectItem>
-                      <SelectItem value="STUDENT">Student</SelectItem>
-                      <SelectItem value="PARENT">Parent</SelectItem>
+                      {['ADMIN', 'TEACHER', 'STUDENT', 'PARENT'].map(role => (
+                        <SelectItem 
+                          key={role} 
+                          value={role}
+                          data-testid={`option-${role}`}
+                        >
+                          {role}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -213,22 +216,25 @@ export function CreateUserDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Parents</FormLabel>
-                    <div className="space-y-2 border rounded-md p-4 max-h-[200px] overflow-y-auto">
-                      {parents?.map((parent: User) => (
+                    <div 
+                      className="space-y-2 border rounded-md p-4 max-h-[200px] overflow-y-auto"
+                      data-testid="parents-container"
+                    >
+                      {(parents || [])?.map((parent: User) => (
                         <div key={parent._id} className="flex items-center space-x-2">
                           <Checkbox
+                            id={`parent-${parent._id}`}
+                            data-testid={`parent-${parent._id}`}
                             checked={field.value?.includes(parent._id)}
                             onCheckedChange={(checked) => {
                               const currentValues = field.value || []
-                              const newValues = checked
+                              field.onChange(checked 
                                 ? [...currentValues, parent._id]
-                                : currentValues.filter((id) => id !== parent._id)
-                              field.onChange(newValues)
+                                : currentValues.filter(id => id !== parent._id)
+                              )
                             }}
                           />
-                          <label className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            {parent.name}
-                          </label>
+                          <label htmlFor={`parent-${parent._id}`}>{parent.name}</label>
                         </div>
                       ))}
                       {!parents?.length && (

@@ -45,12 +45,13 @@ export default function ClassesPage() {
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
-  const { data: classes, isLoading, error } = useQuery({
+  const { data: classes = [], isLoading, error } = useQuery({
     queryKey: ['classes'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/admin/classes')
       if (!res.ok) throw new Error('Failed to fetch classes')
-      return res.json()
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     }
   })
 
@@ -79,7 +80,7 @@ export default function ClassesPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6" data-testid="loading-skeleton">
         <div className="flex justify-between items-center">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-10 w-32" />

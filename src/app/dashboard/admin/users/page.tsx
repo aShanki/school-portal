@@ -34,11 +34,13 @@ export default function UsersPage() {
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const queryClient = useQueryClient()
   
-  const { data: users } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/admin/users')
-      return res.json()
+      if (!res.ok) throw new Error('Failed to fetch users')
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     }
   })
 

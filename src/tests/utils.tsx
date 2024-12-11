@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { render, act } from '@testing-library/react'
+import { render, act, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 
@@ -69,4 +69,15 @@ export function createWrapper(sessionData?: any) {
       </QueryClientProvider>
     </SessionProvider>
   )
+}
+
+export const selectOption = async (screen: any, labelText: string, optionText: string) => {
+  const combobox = screen.getByLabelText(labelText)
+  fireEvent.click(combobox)
+  
+  // Wait for the select content to be in the document
+  await waitFor(() => {
+    const option = screen.getByTestId(`option-${optionText}`)
+    fireEvent.click(option)
+  }, { timeout: 3000 })
 }

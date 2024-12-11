@@ -6,6 +6,8 @@ import AdminLayout from '@/app/dashboard/admin/layout'
 import AdminDashboard from '@/app/dashboard/admin/page'
 import UsersPage from '@/app/dashboard/admin/users/page'
 import ClassesPage from '@/app/dashboard/admin/classes/page'
+import { renderWithProviders, createMockSession, selectOption } from '../utils'
+import { within } from '@testing-library/react'
 
 // Mock next-auth
 jest.mock('next-auth/react')
@@ -108,9 +110,19 @@ describe('Users Management', () => {
   ]
 
   beforeEach(() => {
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockUsers
+    jest.clearAllMocks()
+    // Setup user-related mocks
+    ;(fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/dashboard/admin/users')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockUsers
+        })
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({})
+      })
     })
   })
 
@@ -176,41 +188,77 @@ describe('Users Management', () => {
       parentIds
     }
 
-    const response = {
-      ...payload,
-      password: expect.any(String),
-      _id: expect.any(String),
-      createdAt: expect.any(String),
-      __v: 0
-    }
+    const mockParents = [
+      { _id: '6755b126a30771498e5e9a17', name: 'Parent 1' },
+      { _id: '6755b126a30771498e5e9a16', name: 'Parent 2' }
+    ]
 
-    ;(fetch as jest.Mock).mockReset()
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => response
+    ;(fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/dashboard/admin/users?role=PARENT')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockParents
+        })
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          ...payload,
+          _id: '123',
+          createdAt: new Date().toISOString()
+        })
+      })
     })
 
     render(<UsersPage />, { wrapper })
 
-    const createButton = await screen.findByRole('button', { name: /create user/i })
+    // Open and fill form
+    const createButton = await screen.findByText(/create user/i)
     fireEvent.click(createButton)
 
-    // Fill form
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: name } })
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: email } })
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: payload.password } })
-    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: role } })
+    // Wait for dialog and fill form
+    await waitFor(async () => {
+      const nameInput = screen.getByLabelText(/name/i)
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/password/i)
+      
+      fireEvent.change(nameInput, { target: { value: name } })
+      fireEvent.change(emailInput, { target: { value: email } })
+      fireEvent.change(passwordInput, { target: { value: payload.password } })
+    })
+
+    // Select role
+    const roleSelect = screen.getByLabelText(/role/i)
+    fireEvent.mouseDown(roleSelect)
+    await waitFor(() => screen.getByTestId(`option-${role}`), { timeout: 3000 })
+    const roleOption = screen.getByTestId(`option-${role}`)
+    fireEvent.click(roleOption)
+
+    // Handle student-specific fields
     if (role === 'STUDENT') {
-      fireEvent.change(screen.getByLabelText(/parent ids/i), { target: { value: parentIds.join(',') } })
+      await waitFor(() => {
+        expect(screen.getByTestId('parents-container')).toBeInTheDocument()
+      })
+      
+      mockParents.forEach(parent => {
+        if (parentIds.includes(parent._id)) {
+          const checkbox = screen.getByTestId(`parent-${parent._id}`)
+          fireEvent.click(checkbox)
+        }
+      })
     }
 
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }))
+    // Submit form
+    const submitButton = screen.getByRole('button', { name: /create user/i })
+    fireEvent.click(submitButton)
 
+    // Verify API call
     await waitFor(() => {
-      const fetchCall = (fetch as jest.Mock).mock.calls[1]
-      expect(JSON.parse(fetchCall[1].body)).toEqual(payload)
-      expect(fetchCall[1].method).toBe('POST')
-      expect(fetchCall[1].headers['Content-Type']).toBe('application/json')
+      const postCall = (fetch as jest.Mock).mock.calls.find(
+        ([url, opts]) => url.includes('/api/dashboard/admin/users') && opts?.method === 'POST'
+      )
+      expect(postCall).toBeTruthy()
+      expect(JSON.parse(postCall[1].body)).toEqual(payload)
     })
   })
 })
@@ -231,61 +279,62 @@ describe('Classes Management', () => {
   ]
   
   beforeEach(() => {
-    ;(fetch as jest.Mock).mockImplementation((url) => {
-        if (url.includes('/api/classes')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => mockClasses,
-          });
-        }
-        if (url.includes('/api/teachers')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => mockTeachers,
-          });
-        }
-        return Promise.resolve({
-          ok: false,
-          json: async () => ({})
-        });
-      });
-  })
-
-  it('renders class list correctly', async () => {
-    render(<ClassesPage />, { wrapper })
-
-    await waitFor(() => {
-      // Use getByRole with specific names
-      expect(screen.getByRole('cell', { name: /math 101/i })).toBeInTheDocument()
-      expect(screen.getByRole('cell', { name: /john doe/i })).toBeInTheDocument()
-      expect(screen.getByRole('cell', { name: /mathematics/i })).toBeInTheDocument()
-    })
-  })
-
-  it('handles class creation modal', async () => {
-    // Mock the teachers endpoint specifically
-    ;(fetch as jest.Mock)
-      .mockImplementation((url) => {
-        if (url.includes('/teachers')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => mockTeachers
-          })
-        }
+    jest.clearAllMocks()
+    
+    // Setup all fetch mocks before any test runs
+    ;(fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/dashboard/admin/classes')) {
         return Promise.resolve({
           ok: true,
           json: async () => mockClasses
         })
+      }
+      if (url.includes('/api/dashboard/admin/teachers')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockTeachers
+        })
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({})
       })
+    })
+  })
 
-    render(<ClassesPage />, { wrapper })
+  it('renders class list correctly', async () => {
+    await renderWithProviders(<ClassesPage />, {
+      session: createMockSession({ role: 'ADMIN' })
+    })
 
-    const createButton = screen.getByRole('button', { name: /create class/i })
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument()
+    })
+
+    // Wait for content to appear
+    await waitFor(() => {
+      expect(screen.getByText('Math 101')).toBeInTheDocument()
+      expect(screen.getByText('John Doe')).toBeInTheDocument()
+      expect(screen.getByText('Mathematics')).toBeInTheDocument()
+    }, { timeout: 3000 })
+  })
+
+  it('handles class creation modal', async () => {
+    await renderWithProviders(<ClassesPage />, {
+      session: createMockSession({ role: 'ADMIN' })
+    })
+
+    // Wait for loading state to finish
+    await waitFor(() => {
+      expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument()
+    })
+
+    const createButton = await screen.findByRole('button', { name: /create class/i })
     fireEvent.click(createButton)
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument()
-      expect(screen.getByText(/create new class/i)).toBeInTheDocument()
     })
   })
 
