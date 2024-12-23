@@ -14,15 +14,6 @@ interface Child {
   attendanceRate: number
 }
 
-type DashboardData = {
-  children: Array<Child>
-  stats: {
-    childrenCount: number
-    averageGrade: number
-    averageAttendance: number
-  }
-}
-
 export default function ParentDashboard() {
   const router = useRouter()
   const { data: session } = useSession({

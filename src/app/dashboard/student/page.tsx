@@ -14,11 +14,20 @@ TableHead,
   TableRow,
 } from '@/components/ui/table'
 
+interface ClassData {
+  _id: string
+  name: string
+  subject: string
+  teacherId: {
+    name: string
+  }
+}
+
 export default function StudentDashboardPage() {
   const { data: session } = useSession()
   const router = useRouter()
 
-  const { data: classes, isLoading, error } = useQuery<any[]>({
+  const { data: classes, isLoading, error } = useQuery<ClassData[]>({
     queryKey: ['classes'],
     queryFn: () => fetchData('/api/dashboard/student/classes'),
     enabled: !!session

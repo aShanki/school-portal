@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import { AttendanceCalendar } from "@/components/dashboard/calendar"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { format, startOfDay } from "date-fns"
 import { useSession } from 'next-auth/react'
 
@@ -27,6 +27,8 @@ interface AttendanceRecord {
   teacherId: string;
 }
 
+type AttendanceStatus = 'present' | 'absent' | 'late';
+
 export default function AttendancePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { data: session } = useSession({
@@ -36,17 +38,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
   const [classData, setClassData] = useState<Class | null>(null);
   const [attendance, setAttendance] = useState<Map<string, AttendanceRecord>>(new Map());
 
-  useEffect(() => {
-    fetchClassData();
-  }, [id]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      fetchAttendance();
-    }
-  }, [selectedDate]);
-
-  const fetchClassData = async () => {
+  const fetchClassData = useCallback(async () => {
     try {
       const response = await fetch(`/api/dashboard/teacher/classes/${id}`);
       const data = await response.json();
@@ -54,9 +46,9 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error('Failed to fetch class:', error);
     }
-  };
+  }, [id]);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     try {
       // Format the date to start of day to match records
       const startDate = startOfDay(selectedDate).toISOString();
@@ -75,9 +67,19 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error('Failed to fetch attendance:', error);
     }
-  };
+  }, [id, selectedDate]);
 
-  const updateAttendance = async (studentId: string, status: 'present' | 'absent' | 'late') => {
+  useEffect(() => {
+    fetchClassData();
+  }, [id, fetchClassData]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAttendance();
+    }
+  }, [selectedDate, fetchAttendance]);
+
+  const updateAttendance = async (studentId: string, status: AttendanceStatus) => {
     if (!session?.user?.id) {
       console.error('No user ID found in session');
       return;
@@ -123,7 +125,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const getButtonClass = (studentId: string, buttonStatus: 'present' | 'absent' | 'late') => {
+  const getButtonClass = (studentId: string, buttonStatus: AttendanceStatus) => {
     const record = attendance.get(studentId);
     const currentStatus = record?.status;
     
