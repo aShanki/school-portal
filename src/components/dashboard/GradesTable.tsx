@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Pencil, Check } from 'lucide-react'
-import debounce from 'lodash/debounce'
 import { CreateAssignmentDialog } from './CreateAssignmentDialog'
 
 // Move your interfaces here

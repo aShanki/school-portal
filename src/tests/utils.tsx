@@ -59,19 +59,36 @@ export async function renderWithProviders(
   return rendered!;
 }
 
-export function createWrapper(sessionData?: any) {
+type SessionData = {
+  user?: {
+    name?: string;
+    email?: string;
+    role?: string;
+  };
+  expires?: string;
+} | null;
+
+export function createWrapper(sessionData?: SessionData) {
   const queryClient = createTestQueryClient()
   
-  return ({ children }: { children: ReactNode }) => (
+  const TestWrapper = ({ children }: { children: ReactNode }) => (
     <SessionProvider session={sessionData}>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
     </SessionProvider>
   )
+  TestWrapper.displayName = 'TestWrapper'
+  
+  return TestWrapper
 }
 
-export const selectOption = async (screen: any, labelText: string, optionText: string) => {
+// Use a more specific type for screen
+export const selectOption = async (
+  screen: ReturnType<typeof render>, 
+  labelText: string, 
+  optionText: string
+) => {
   const combobox = screen.getByLabelText(labelText)
   fireEvent.click(combobox)
   
