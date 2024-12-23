@@ -185,8 +185,13 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
     }
   })
 
-  const debouncedGradeUpdate = useCallback(
-    debounce((studentId: string, assignmentId: string, value: string, maxPoints: number) => {
+  const debouncedGradeUpdate = useMutation({
+    mutationFn: ({ studentId, assignmentId, value, maxPoints }: { 
+      studentId: string
+      assignmentId: string
+      value: string
+      maxPoints: number 
+    }) => {
       const points = Number(value)
       if (points < 0 || points > maxPoints) {
         toast({
@@ -197,9 +202,8 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
         return
       }
       gradeMutation.mutate({ studentId, assignmentId, points })
-    }, 1000), // Reduced debounce time to 1 second
-    []
-  )
+    }
+  })
 
   const handleGradeChange = (
     studentId: string,
@@ -218,7 +222,7 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
     if (value === '') return
 
     // Trigger debounced update
-    debouncedGradeUpdate(studentId, assignmentId, value, maxPoints)
+    debouncedGradeUpdate.mutate({ studentId, assignmentId, value, maxPoints })
   }
 
   const getGradeValue = (studentId: string, assignmentId: string) => {
@@ -256,7 +260,7 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
   }
 
   const calculateFinalGrade = (studentId: string) => {
-    const categoryGrades = Object.entries(CATEGORY_WEIGHTS).map(([category, weight]) => {
+    const categoryGrades = Object.entries(CATEGORY_WEIGHTS).map(([category]) => {
       return calculateCategoryGrade(studentId, category)
     })
 
@@ -277,7 +281,7 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
         if (value !== undefined) {
           const assignment = classData?.assignments?.find(a => a._id === assignmentId)
           const maxPoints = assignment?.totalPoints || 100
-          debouncedGradeUpdate(studentId, assignmentId, value, maxPoints)
+          debouncedGradeUpdate.mutate({ studentId, assignmentId, value, maxPoints })
         }
         delete newState[gradeKey]
       } else {

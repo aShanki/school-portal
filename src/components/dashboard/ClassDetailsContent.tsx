@@ -14,22 +14,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-interface ClassData {
-  name: string;
-  assignments?: Array<{
-    _id: string;
-    name: string;
-    description: string;
-    totalPoints: number;
-  }>;
-  grades?: Array<{
-    assignmentId: string;
-    points: number;
-  }>;
+interface FetchError extends Error {
+  statusCode?: number;
 }
 
 interface ClassDetailsContentProps {
-  id: string  // No changes needed here since we're now passing a resolved value
+  id: string
 }
 
 export default function ClassDetailsContent({ id }: ClassDetailsContentProps) {
@@ -41,7 +31,7 @@ export default function ClassDetailsContent({ id }: ClassDetailsContentProps) {
     queryFn: () => fetchData(`/api/dashboard/student/classes/${id}`),
     enabled: !!session && !!id,
     retry: 1,
-    onError: (error: any) => {
+    onError: (error: FetchError) => {
       if (error.statusCode === 401) {
         router.push('/api/auth/signin')
       }
