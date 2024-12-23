@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 
+interface Assignment {
+  _id: string
+  name: string
+  category: string
+  status: 'PENDING' | 'SUBMITTED' | 'GRADED'
+}
+
 export default function RecentActivity() {
-  const { data: assignments } = useQuery({
+  const { data: assignments } = useQuery<Assignment[]>({
     queryKey: ['recentAssignments'],
     queryFn: async () => {
       const res = await fetch('/api/assignments')
@@ -14,7 +21,7 @@ export default function RecentActivity() {
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-lg font-semibold mb-4">Recent Activities</h2>
       <div className="space-y-4">
-        {assignments?.slice(0, 5).map((assignment: any) => (
+        {assignments?.slice(0, 5).map((assignment: Assignment) => (
           <div key={assignment._id} className="flex items-center justify-between">
             <div>
               <p className="font-medium">{assignment.name}</p>

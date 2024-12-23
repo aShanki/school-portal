@@ -3,8 +3,16 @@
 import { useQuery } from '@tanstack/react-query'
 import LoadingSpinner from '@/components/LoadingSpinner'
 
+interface Student {
+  _id: string
+  name: string
+  grade: number
+  attendance: number
+  status: 'Active' | 'Inactive'
+}
+
 export default function StudentList() {
-  const { data: students, isLoading } = useQuery({
+  const { data: students, isLoading } = useQuery<Student[]>({
     queryKey: ['students'],
     queryFn: async () => {
       const res = await fetch('/api/students')
@@ -24,7 +32,7 @@ export default function StudentList() {
         <div>Status</div>
       </div>
       <div className="divide-y">
-        {students?.map((student: any) => (
+        {students?.map((student: Student) => (
           <div key={student._id} className="grid grid-cols-4 gap-4 p-4">
             <div>{student.name}</div>
             <div>{student.grade}</div>
