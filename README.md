@@ -1,28 +1,3 @@
-# TODO LIST
-- Tests for each dashboard, every action on every dashboard.
-
-Admin dashboard
-- Create every type of user
-- Delete user ✅ 
-- Create class ✅ 
-- Reassign teacher to class  
-- Add students to class
-- Remove students from class
-
-Teacher dashboard
-- Edit student grades
-- Edit attendance
-- Load all views
-
-Student dashboard
-- View list of classes
-- View grades in a class
-
-Parent dashboard
-- View list of children
-- View attendance per child
-- View grades per child
-
 # Project Description
 
 ## Overview
