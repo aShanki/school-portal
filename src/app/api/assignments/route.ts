@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { connectToDb } from '@/lib/mongodb'
-import { Assignment } from '@/models/Assignment'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+
+import Assignment from '@/models/Assignment'
 
 export async function POST(req: Request) {
   try {

@@ -8,7 +8,7 @@ import { isValidObjectId } from 'mongoose'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,14 +16,14 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isValidObjectId(params.id)) {
+    if (!isValidObjectId(context.params.id)) {
       return NextResponse.json({ error: 'Invalid class ID' }, { status: 400 })
     }
 
     await connectToDb()
 
     // Get current class's student IDs
-    const currentClass = await Class.findById(params.id)
+    const currentClass = await Class.findById(context.params.id)
     if (!currentClass) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 })
     }
