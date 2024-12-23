@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import User from '@/models/User'
 import Class from '@/models/Class'
+import Grade from '@/models/Grade'
+import Assignment from '@/models/Assignment'
 import mongoose from 'mongoose'
 
 interface IClass {
