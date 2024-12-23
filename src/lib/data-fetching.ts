@@ -1,5 +1,8 @@
 export interface FetchError extends Error {
   statusCode?: number;
+  statusText?: string;
+  responseText?: string;
+  requestUrl?: string;
 }
 
 function getBaseUrl() {
@@ -10,17 +13,10 @@ function getBaseUrl() {
 }
 
 export async function fetchWithAuth<T = unknown>(path: string, session: { user?: { id?: string; role?: string } } | null, options: RequestInit = {}): Promise<T> {
+  const baseUrl = getBaseUrl();
+  const url = baseUrl ? new URL(path, baseUrl).toString() : path;
+
   try {
-    const baseUrl = getBaseUrl()
-    const url = baseUrl ? new URL(path, baseUrl).toString() : path
-    
-    console.log('[fetchWithAuth] Request:', {
-      url,
-      hasSession: !!session,
-      userId: session?.user?.id,
-      userRole: session?.user?.role
-    })
-    
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -34,14 +30,26 @@ export async function fetchWithAuth<T = unknown>(path: string, session: { user?:
     if (!response.ok) {
       console.error('[fetchWithAuth] Error Response:', {
         status: response.status,
-        statusText: response.statusText
-      })
-      const error = new Error('API request failed') as FetchError;
+        statusText: response.statusText,
+        url: response.url,
+      });
+
+      let responseText: string | undefined;
+      try {
+        responseText = await response.text();
+      } catch (e) {
+        console.error('[fetchWithAuth] Failed to get response text:', e);
+      }
+
+      const error = new Error(`API request failed: ${response.status} ${response.statusText}`) as FetchError;
       error.statusCode = response.status;
+      error.statusText = response.statusText;
+      error.responseText = responseText;
+      error.requestUrl = url;
       throw error;
     }
 
-    const data = await response.json()
+    const data = await response.json();
     console.log('[fetchWithAuth] Success Response:', {
       path,
       status: response.status,
@@ -49,8 +57,15 @@ export async function fetchWithAuth<T = unknown>(path: string, session: { user?:
     })
     return data;
   } catch (error) {
-    console.error('[fetchWithAuth] Error:', error);
-    throw error;
+    if (error instanceof Error && 'statusCode' in error) {
+      throw error; // Re-throw FetchError
+    }
+    // Handle network or other errors
+    const fetchError = new Error(`Request failed: ${error instanceof Error ? error.message : 'Unknown error'}`) as FetchError;
+    fetchError.statusCode = 500;
+    fetchError.requestUrl = url;
+    console.error('[fetchWithAuth] Error:', fetchError);
+    throw fetchError;
   }
 }
 
