@@ -6,14 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useRouter } from 'next/navigation'
 
+interface Child {
+  _id: string
+  name: string
+  email: string
+  averageGrade: number
+  attendanceRate: number
+}
+
 type DashboardData = {
-  children: Array<{
-    _id: string
-    name: string
-    email: string
-    averageGrade: number
-    attendanceRate: number
-  }>
+  children: Array<Child>
   stats: {
     childrenCount: number
     averageGrade: number
@@ -103,7 +105,7 @@ export default function ParentDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data?.children?.map((child: any) => (
+        {data?.children?.map((child: Child) => (
           <Card 
             key={child._id} 
             className="cursor-pointer hover:shadow-lg transition-shadow"

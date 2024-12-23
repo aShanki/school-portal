@@ -24,7 +24,7 @@ export async function GET(
     })
 
     return NextResponse.json(records)
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Attendance fetch error:', err)
     return NextResponse.json({ error: 'Failed to fetch attendance' }, { status: 500 })
   }
@@ -60,7 +60,7 @@ export async function POST(
     )
 
     return NextResponse.json(attendance)
-  } catch (error) {
+  } catch (error: unknown) {
     return NextResponse.json(
       { error: 'Failed to update attendance' },
       { status: 500 }

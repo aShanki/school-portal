@@ -17,7 +17,7 @@ export default function ChildDetailsClient({ childId }: { childId: string }) {
   })
 
   if (isLoading) return <LoadingSpinner />
-  if (!data) return <div>Couldn&apos;s fetch child&apos;s data</div>
+  if (!data) return <div>Could not fetch child's data</div>
 
   return (
     <div className="p-6">

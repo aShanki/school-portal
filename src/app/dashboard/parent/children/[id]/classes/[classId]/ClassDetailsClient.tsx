@@ -17,6 +17,17 @@ interface Props {
   classId: string
 }
 
+interface Assignment {
+  _id: string
+  name: string
+  totalPoints: number
+}
+
+interface Grade {
+  assignmentId: string
+  points: number
+}
+
 export default function ClassDetailsClient({ studentId, classId }: Props) {
   const router = useRouter()
 
@@ -71,8 +82,8 @@ export default function ClassDetailsClient({ studentId, classId }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.assignments?.map((assignment: any) => {
-              const grade = data.grades.find((g: any) => g.assignmentId.toString() === assignment._id.toString())
+            {data?.assignments?.map((assignment: Assignment) => {
+              const grade = data.grades.find((g: Grade) => g.assignmentId.toString() === assignment._id.toString())
               return (
                 <TableRow key={assignment._id}>
                   <TableCell>{assignment.name}</TableCell>

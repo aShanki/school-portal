@@ -14,6 +14,23 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+interface ClassData {
+  _id: string
+  name: string
+  attendance: {
+    present: number
+    absent: number
+    late: number
+    rate: number
+  }
+}
+
+interface ChildData {
+  _id: string
+  name: string
+  classes: ClassData[]
+}
+
 export default function ParentAttendancePage() {
   const router = useRouter()
   const { data: session } = useSession({
@@ -37,10 +54,10 @@ export default function ParentAttendancePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Children's Attendance</h1>
+      <h1 className="text-2xl font-bold">Children&apos;s Attendance</h1>
 
       <div className="grid gap-4">
-        {data?.children?.map((child: any) => (
+        {data?.children?.map((child: ChildData) => (
           <Card key={child._id}>
             <CardHeader>
               <CardTitle>{child.name}</CardTitle>

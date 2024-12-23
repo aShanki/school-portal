@@ -13,6 +13,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+interface Child {
+  _id: string
+  name: string
+  email: string
+  averageGrade: number
+}
+
 export default function ParentChildrenPage() {
   const router = useRouter()
   const { data: session } = useSession({
@@ -48,7 +55,7 @@ export default function ParentChildrenPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.children?.map((child: any) => (
+          {data?.children?.map((child: Child) => (
             <TableRow key={child._id}>
               <TableCell className="font-medium">{child.name}</TableCell>
               <TableCell>{child.email}</TableCell>
