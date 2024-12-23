@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
-import Assignment from '@/models/Assignment'
+import { Assignment } from '@/models/Assignment'
 import Grade from '@/models/Grade'
 import { isValidObjectId, Types } from 'mongoose'
 

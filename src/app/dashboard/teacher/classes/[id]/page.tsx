@@ -21,6 +21,22 @@ interface Assignment {
   status: string;
 }
 
+// Add this sorting function before the component
+function sortAssignments(assignments: Assignment[]): Assignment[] {
+  return [...assignments].sort((a, b) => {
+    // Check if either assignment is participation
+    const isAParticipation = a.category.toLowerCase().includes('participation');
+    const isBParticipation = b.category.toLowerCase().includes('participation');
+    
+    // If one is participation and the other isn't, sort participation last
+    if (isAParticipation && !isBParticipation) return 1;
+    if (!isAParticipation && isBParticipation) return -1;
+    
+    // If neither or both are participation, maintain original order
+    return 0;
+  });
+}
+
 interface Grade {
   _id: string;
   assignmentId: string;
@@ -76,16 +92,23 @@ export default async function ClassDetailsPage({ params }: PageProps) {
       session,
       { cache: 'no-store' }
     )) as ClassData
+
+    // Sort the assignments before passing to GradesTable
+    const sortedClassData = {
+      ...classData,
+      assignments: sortAssignments(classData.assignments)
+    }
+
     console.timeEnd(`[Page ${requestId}] Fetch class ${id}`)
 
     console.log(`[Page ${requestId}] Class data loaded:`, {
       id,
-      name: classData.name,
-      studentsCount: classData.studentIds.length,
-      assignmentsCount: classData.assignments.length
+      name: sortedClassData.name,
+      studentsCount: sortedClassData.studentIds.length,
+      assignmentsCount: sortedClassData.assignments.length
     })
 
-    return <GradesTable classData={classData} classId={id} />
+    return <GradesTable classData={sortedClassData} classId={id} />
   } catch (error) {
     console.error(`[Page ${requestId}] Error loading class:`, { 
       id, 

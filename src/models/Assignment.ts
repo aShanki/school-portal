@@ -1,36 +1,15 @@
+import mongoose from 'mongoose'
 
-import { Schema, model, models } from 'mongoose'
-
-const assignmentSchema = new Schema({
-  name: {
-    type: String,
-    required: true
-  },
+const assignmentSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  totalPoints: { type: Number, required: true },
   description: String,
-  classId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Class',
-    required: true
-  },
-  category: {
-    type: String,
-    required: true,
-    enum: ['Unit Test', 'Seatwork', 'Term Test', 'Homework', 'Research', 'Participation']
-  },
-  totalPoints: {
-    type: Number,
-    required: true
-  },
-  status: {
-    type: String,
-    default: 'active',
-    enum: ['active', 'archived']
-  },
-  dueDate: Date,
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  classId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Class' },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 })
 
-export default models.Assignment || model('Assignment', assignmentSchema)
+export const Assignment = mongoose.models.Assignment || mongoose.model('Assignment', assignmentSchema)
