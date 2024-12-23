@@ -13,8 +13,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -26,6 +31,12 @@ const formSchema = z.object({
   teacherId: z.string().min(1, 'Please select a teacher'),
   subject: z.string().min(1, 'Subject is required'),
 })
+
+interface Teacher {
+  _id: string;
+  name: string;
+  email: string;
+}
 
 export function CreateClassDialog({ 
   open, 
@@ -39,15 +50,14 @@ export function CreateClassDialog({
   onClose?: () => void
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const queryClient = useQueryClient()
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      teacherId: '',
-      subject: '',
+      name: classToEdit?.name || '',
+      teacherId: classToEdit?.teacherId?._id || '',
+      subject: classToEdit?.subject || '',
     }
   })
 
@@ -58,16 +68,10 @@ export function CreateClassDialog({
         teacherId: classToEdit.teacherId?._id || '',
         subject: classToEdit.subject || '',
       })
-    } else {
-      form.reset({
-        name: '',
-        teacherId: '',
-        subject: '',
-      })
     }
   }, [classToEdit, form])
 
-  const { data: teachers = [] } = useQuery({
+  const { data: teachers = [], isLoading: isLoadingTeachers } = useQuery<Teacher[]>({
     queryKey: ['teachers'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/admin/teachers')
@@ -75,10 +79,6 @@ export function CreateClassDialog({
       return res.json()
     },
   })
-
-  const filteredTeachers = teachers.filter(teacher => 
-    teacher?.name?.toLowerCase?.().includes(searchTerm.toLowerCase()) ?? false
-  )
 
   const mutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
@@ -151,33 +151,26 @@ export function CreateClassDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Teacher</FormLabel>
-                  <Command className="rounded-lg border shadow-sm">
-                    <CommandInput 
-                      placeholder="Search teachers..." 
-                      onValueChange={setSearchTerm}
-                      value={searchTerm}
-                    />
-                    <ScrollArea className="h-48">
-                      <CommandEmpty>No teachers found.</CommandEmpty>
-                      <CommandGroup>
-                        {filteredTeachers?.map((teacher) => (
-                          <CommandItem
-                            key={teacher._id}
-                            value={teacher.name}
-                            onSelect={() => {
-                              field.onChange(teacher._id)
-                              setSearchTerm('')
-                            }}
-                          >
-                            {teacher.name}
-                            {field.value === teacher._id && (
-                              <span className="ml-auto">✓</span>
-                            )}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </ScrollArea>
-                  </Command>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a teacher" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teachers.map((teacher) => (
+                        <SelectItem
+                          key={teacher._id}
+                          value={teacher._id}
+                        >
+                          {teacher.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
