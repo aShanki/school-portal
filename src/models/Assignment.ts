@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const assignmentSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -10,6 +10,8 @@ const assignmentSchema = new mongoose.Schema({
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-})
+}, { timestamps: true });
 
-export const Assignment = mongoose.models.Assignment || mongoose.model('Assignment', assignmentSchema)
+const Assignment = mongoose.models.Assignment || mongoose.model('Assignment', assignmentSchema);
+
+export default Assignment;
