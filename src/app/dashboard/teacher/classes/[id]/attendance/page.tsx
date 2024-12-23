@@ -50,15 +50,15 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
 
   const fetchAttendance = useCallback(async () => {
     try {
-      // Format the date to start of day to match records
-      const startDate = startOfDay(selectedDate).toISOString();
-      const endDate = new Date(startOfDay(selectedDate).setHours(23, 59, 59, 999)).toISOString();
+      // Use start of day for both start and end dates
+      const queryDate = startOfDay(selectedDate)
+      const startDate = queryDate.toISOString()
+      const endDate = queryDate.toISOString()
       
       const response = await fetch(
         `/api/dashboard/teacher/classes/${id}/attendance?startDate=${startDate}&endDate=${endDate}`
       );
       const data = await response.json();
-      console.log('Fetched attendance data:', data);
       
       const attendanceMap = new Map<string, AttendanceRecord>(
         data.map((record: AttendanceRecord) => [record.studentId, record])
@@ -86,14 +86,6 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
     }
 
     try {
-      console.log('Sending attendance update:', {
-        studentId,
-        teacherId: session.user.id,
-        classId: id,
-        date: selectedDate,
-        status
-      });
-
       const response = await fetch(`/api/dashboard/teacher/classes/${id}/attendance`, {
         method: 'POST',
         headers: {
@@ -103,7 +95,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
           studentId,
           teacherId: session.user.id,
           classId: id,
-          date: selectedDate.toISOString(),
+          date: startOfDay(selectedDate).toISOString(), // Use start of day
           status
         })
       });
@@ -113,15 +105,19 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
         throw new Error(`Failed to update attendance: ${errorData}`);
       }
 
-      const updatedRecord = await response.json();
-      console.log('Server response:', updatedRecord);
-
-      setAttendance(new Map(
-        new Map(attendance).set(studentId, updatedRecord)
-      ));
+      const responseData = await response.json();
+      
+      // Handle the case where the record was removed
+      if (responseData.message === 'Attendance record removed') {
+        const newAttendance = new Map(attendance);
+        newAttendance.delete(studentId);
+        setAttendance(newAttendance);
+      } else {
+        // Update with new record
+        setAttendance(new Map(attendance).set(studentId, responseData));
+      }
     } catch (error) {
       console.error('Failed to update attendance:', error);
-      // Optionally show error to user
     }
   };
 

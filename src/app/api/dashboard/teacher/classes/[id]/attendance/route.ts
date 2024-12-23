@@ -3,6 +3,7 @@ import dbConnect from '@/lib/dbConnect'
 import Attendance from '@/models/Attendance'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { startOfDay, endOfDay } from 'date-fns'
 
 export async function GET(
   request: NextRequest,
@@ -15,11 +16,15 @@ export async function GET(
     const endDate = searchParams.get('endDate')
     const { id } = await params
 
+    // Use start of day and end of day for the query
+    const queryStartDate = startOfDay(new Date(startDate!))
+    const queryEndDate = endOfDay(new Date(endDate!))
+
     const records = await Attendance.find({
       classId: id,
       date: {
-        $gte: new Date(startDate!),
-        $lte: new Date(endDate!)
+        $gte: queryStartDate,
+        $lte: queryEndDate
       }
     })
 
@@ -44,11 +49,17 @@ export async function POST(
     const { id } = await params
     await dbConnect()
 
-    // First check if there's an existing record with the same status
+    // Convert the incoming date to start of day for consistent comparison
+    const attendanceDate = startOfDay(new Date(body.date))
+
+    // First check if there's an existing record for this date
     const existingAttendance = await Attendance.findOne({
       classId: id,
       studentId: body.studentId,
-      date: new Date(body.date)
+      date: {
+        $gte: attendanceDate,
+        $lt: endOfDay(attendanceDate)
+      }
     })
 
     // If existing record has the same status, remove it
@@ -62,12 +73,16 @@ export async function POST(
       {
         classId: id,
         studentId: body.studentId,
-        date: new Date(body.date)
+        date: {
+          $gte: attendanceDate,
+          $lt: endOfDay(attendanceDate)
+        }
       },
       {
         $set: {
           status: body.status,
-          teacherId: session.user.id
+          teacherId: session.user.id,
+          date: attendanceDate // Store the start of day
         }
       },
       { upsert: true, new: true }
