@@ -46,8 +46,8 @@ export default function ClassDetailsClient({ studentId, classId }: Props) {
 
   const calculateOverallGrade = () => {
     if (!data?.grades || !data?.assignments) return 0
-    const totalEarnedPoints = data.grades.reduce((sum: number, grade: any) => sum + grade.points, 0)
-    const totalPossiblePoints = data.assignments.reduce((sum: number, assignment: any) => sum + assignment.totalPoints, 0)
+    const totalEarnedPoints = data.grades.reduce((sum: number, grade: Grade) => sum + grade.points, 0)
+    const totalPossiblePoints = data.assignments.reduce((sum: number, assignment: Assignment) => sum + assignment.totalPoints, 0)
     return calculateGradePercentage(totalEarnedPoints, totalPossiblePoints)
   }
 

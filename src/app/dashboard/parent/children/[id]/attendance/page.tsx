@@ -74,7 +74,7 @@ export default function ParentAttendancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {child.classes?.map((cls: any) => (
+                  {child.classes?.map((cls: ClassData) => (
                     <TableRow key={cls._id}>
                       <TableCell>{cls.name}</TableCell>
                       <TableCell>{cls.attendance.present}</TableCell>

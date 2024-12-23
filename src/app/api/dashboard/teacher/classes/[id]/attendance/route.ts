@@ -61,6 +61,7 @@ export async function POST(
 
     return NextResponse.json(attendance)
   } catch (error: unknown) {
+    console.error('Failed to update attendance:', error);
     return NextResponse.json(
       { error: 'Failed to update attendance' },
       { status: 500 }

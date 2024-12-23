@@ -17,11 +17,11 @@ export default function ChildDetailsClient({ childId }: { childId: string }) {
   })
 
   if (isLoading) return <LoadingSpinner />
-  if (!data) return <div>Could not fetch child's data</div>
+  if (!data) return <div>Could not fetch child&apos;s data</div>
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{data.child?.name}'s Details</h1>
+      <h1 className="text-2xl font-bold mb-6">{data.child?.name}&apos;s Details</h1>
       
       <div className="space-y-6">
         {/* Overall Stats */}
