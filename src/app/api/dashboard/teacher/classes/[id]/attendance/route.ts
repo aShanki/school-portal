@@ -44,6 +44,20 @@ export async function POST(
     const { id } = await params
     await dbConnect()
 
+    // First check if there's an existing record with the same status
+    const existingAttendance = await Attendance.findOne({
+      classId: id,
+      studentId: body.studentId,
+      date: new Date(body.date)
+    })
+
+    // If existing record has the same status, remove it
+    if (existingAttendance && existingAttendance.status === body.status) {
+      await Attendance.findByIdAndDelete(existingAttendance._id)
+      return NextResponse.json({ message: 'Attendance record removed' })
+    }
+
+    // Otherwise, update or create new record
     const attendance = await Attendance.findOneAndUpdate(
       {
         classId: id,
@@ -61,7 +75,7 @@ export async function POST(
 
     return NextResponse.json(attendance)
   } catch (error: unknown) {
-    console.error('Failed to update attendance:', error);
+    console.error('Failed to update attendance:', error)
     return NextResponse.json(
       { error: 'Failed to update attendance' },
       { status: 500 }
