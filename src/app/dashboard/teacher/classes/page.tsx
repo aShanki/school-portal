@@ -22,7 +22,7 @@ interface ClassData {
 }
 
 export default function TeacherClassesPage() {
-  const { data: session } = useSession({
+  useSession({
     required: true,
     onUnauthenticated() {
       router.push('/auth/signin')

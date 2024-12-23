@@ -171,12 +171,12 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
                     <td className="px-6 py-4">{student.name}</td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
-                        {['present', 'absent', 'late'].map((status) => (
+                        {(['present', 'absent', 'late'] as AttendanceStatus[]).map((status) => (
                           <button
                             key={status}
-                            onClick={() => updateAttendance(student._id, status as any)}
+                            onClick={() => updateAttendance(student._id, status)}
                             className={`px-4 py-2 rounded transition-colors ${
-                              getButtonClass(student._id, status as any)
+                              getButtonClass(student._id, status)
                             }`}
                           >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
