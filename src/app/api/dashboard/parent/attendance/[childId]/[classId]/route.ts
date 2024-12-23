@@ -5,16 +5,16 @@ import { connectToDb } from '@/lib/mongodb'
 import User from '@/models/User'
 import Class from '@/models/Class'
 import Attendance from '@/models/Attendance'
-import { UserDocument, ClassDocument, AttendanceDocument } from '@/models/types'
 import { Types } from 'mongoose'
 
 // Add type guards at the top of the file
-function isUserDocument(obj: any): obj is UserDocument {
-  return obj && typeof obj.name === 'string';
+function isUserDocument(obj: unknown): obj is UserDocument {
+  return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string';
 }
 
-function isClassDocument(obj: any): obj is ClassDocument {
-  return obj && typeof obj.name === 'string' && obj.teacherId && typeof obj.teacherId.name === 'string';
+function isClassDocument(obj: unknown): obj is ClassDocument {
+  return obj && typeof obj === 'object' && 'name' in obj && 
+    'teacherId' in obj && typeof obj.name === 'string';
 }
 
 export async function GET(
@@ -59,7 +59,8 @@ export async function GET(
         remarks: record.remarks
       }))
     })
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Attendance fetch error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

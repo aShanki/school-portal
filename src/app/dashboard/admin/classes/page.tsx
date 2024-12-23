@@ -34,7 +34,7 @@ import { toast } from 'sonner'
 
 export default function ClassesPage() {
   const router = useRouter()
-  const { data: session } = useSession({
+  const { } = useSession({
     required: true,
     onUnauthenticated() {
       router.push('/auth/signin')

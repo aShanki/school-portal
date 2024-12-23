@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { ClassAttendance } from '@/types'
 
 export default function ParentAttendancePage() {
   const router = useRouter()
@@ -62,8 +63,8 @@ export default function ParentAttendancePage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.children?.map((child: any) => 
-            child.classes?.map((cls: any) => (
+          {data?.children?.map((child: { _id: string; name: string; classes: ClassAttendance[] }) => 
+            child.classes?.map((cls: ClassAttendance) => (
               <TableRow key={`${child._id}-${cls._id}`}>
                 <TableCell className="font-medium">{child.name}</TableCell>
                 <TableCell>{cls.name}</TableCell>

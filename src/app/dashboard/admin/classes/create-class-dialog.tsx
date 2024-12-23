@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { Class } from '@/types'
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -33,7 +34,7 @@ export function CreateClassDialog({
 }: { 
   open: boolean
   onOpenChange: (open: boolean) => void 
-  classToEdit?: any
+  classToEdit?: Class
   onClose?: () => void
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -145,7 +146,7 @@ export function CreateClassDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {teachers?.map((teacher: any) => (
+                      {teachers?.map((teacher: { _id: string; name: string }) => (
                         <SelectItem key={teacher._id} value={teacher._id}>
                           {teacher.name}
                         </SelectItem>

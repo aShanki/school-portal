@@ -23,7 +23,12 @@ export async function PATCH(
     }
 
     const data = await req.json()
-    const updateData: any = {
+    const updateData: {
+      name: string;
+      email: string;
+      role: string;
+      password?: string;
+    } = {
       name: data.name,
       email: data.email,
       role: data.role
@@ -47,7 +52,8 @@ export async function PATCH(
     }
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Update user error:', error);
     return NextResponse.json(
       { error: 'Failed to update user' },
       { status: 500 }
@@ -82,7 +88,8 @@ export async function DELETE(
     }
 
     return NextResponse.json({ message: 'User deleted successfully' })
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Delete user error:', error);
     return NextResponse.json(
       { error: 'Failed to delete user' },
       { status: 500 }

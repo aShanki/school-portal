@@ -7,13 +7,14 @@ import StatsCard from '@/components/dashboard/StatsCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 
 export default function AdminDashboard() {
-  const { data: session } = useSession({
+  const router = useRouter()
+
+  const { } = useSession({
     required: true,
     onUnauthenticated() {
       router.push('/auth/signin')
     }
   })
-  const router = useRouter()
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],

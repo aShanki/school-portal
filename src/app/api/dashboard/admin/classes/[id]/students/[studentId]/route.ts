@@ -24,7 +24,8 @@ export async function DELETE(
     ).populate('studentIds', 'name email')
 
     return NextResponse.json(updatedClass)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Delete student error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
@@ -53,7 +54,8 @@ export async function POST(
     }
 
     return NextResponse.json(updatedClass)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Add student error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

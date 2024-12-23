@@ -72,6 +72,9 @@ export default function UsersPage() {
     }
   }
 
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error: {(error as Error).message}</div>
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">

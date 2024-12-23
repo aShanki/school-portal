@@ -7,7 +7,7 @@ import Grade from '@/models/Grade'
 import Attendance from '@/models/Attendance'
 import { Types } from 'mongoose'
 
-const calculateAttendanceRate = (records: any[]) => {
+const calculateAttendanceRate = (records: { status: string }[]): number => {
   if (records.length === 0) return 0
   const presentCount = records.filter(r => r.status === 'present' || r.status === 'late').length
   return Math.round((presentCount / records.length) * 100)

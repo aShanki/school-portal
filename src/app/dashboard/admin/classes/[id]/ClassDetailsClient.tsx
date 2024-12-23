@@ -48,7 +48,7 @@ export default function ClassDetailsClient({ initialData, classId }: ClassDetail
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddDialog, setShowAddDialog] = useState(false)
 
-  const { data: session } = useSession({
+  useSession({
     required: true,
     onUnauthenticated() {
       router.push('/auth/signin')

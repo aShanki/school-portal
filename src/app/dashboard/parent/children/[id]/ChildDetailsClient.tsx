@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useRouter } from 'next/navigation'
+import { Class } from '@/types'
 
 export default function ChildDetailsClient({ childId }: { childId: string }) {
   const router = useRouter()
@@ -16,7 +17,7 @@ export default function ChildDetailsClient({ childId }: { childId: string }) {
   })
 
   if (isLoading) return <LoadingSpinner />
-  if (!data) return <div>No data available</div>
+  if (!data) return <div>Couldn&apos;s fetch child&apos;s data</div>
 
   return (
     <div className="p-6">
@@ -33,7 +34,7 @@ export default function ChildDetailsClient({ childId }: { childId: string }) {
         {/* Classes List */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Classes</h2>
-          {data.classes.map((cls: any) => (
+          {data.classes.map((cls: Class) => (
             <div 
               key={cls._id} 
               className="bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-gray-50"

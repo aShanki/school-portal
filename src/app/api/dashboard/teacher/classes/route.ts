@@ -43,7 +43,8 @@ export async function GET() {
     )
     
     return NextResponse.json(classesWithAttendance)
-  } catch (error) {
+  } catch (err) {
+    console.error('Error fetching classes:', err)
     return NextResponse.json(
       { error: 'Failed to fetch classes' },
       { status: 500 }
@@ -67,10 +68,10 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(newClass)
-  } catch (error) {
-    console.error('Classes POST error:', error)
+  } catch (err) {
+    console.error('Error fetching classes:', err)
     return NextResponse.json(
-      { error: 'Failed to create class' },
+      { error: 'Failed to fetch classes' },
       { status: 500 }
     )
   }

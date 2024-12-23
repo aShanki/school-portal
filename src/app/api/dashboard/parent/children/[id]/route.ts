@@ -4,8 +4,6 @@ import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import User from '@/models/User'
 import Class from '@/models/Class'
-import Grade from '@/models/Grade'
-import Assignment from '@/models/Assignment'
 import mongoose from 'mongoose'
 
 interface IClass {
@@ -19,15 +17,6 @@ interface IClass {
   };
 }
 
-interface IGrade {
-  classId: mongoose.Types.ObjectId;
-  points: number;
-}
-
-interface IAssignment {
-  classId: mongoose.Types.ObjectId;
-  totalPoints: number;
-}
 
 interface IClassDocument {
   _id: mongoose.Types.ObjectId;

@@ -29,13 +29,13 @@ interface User {
   email: string;
 }
 
-interface ClassDocument {
+interface ClassDocument extends Document {
   _id: Types.ObjectId;
   name: string;
   subject: string;
   teacherId: User;
   studentIds: User[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export default async function ClassDetailsPage(

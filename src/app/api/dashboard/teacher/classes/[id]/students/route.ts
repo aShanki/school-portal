@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
-import User from '@/models/User'
 
 // Get students in a class
 export async function GET(

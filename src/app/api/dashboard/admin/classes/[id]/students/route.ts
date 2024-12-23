@@ -31,7 +31,8 @@ export async function POST(
     const serializedClass = JSON.parse(JSON.stringify(updatedClass))
 
     return NextResponse.json(serializedClass)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Add student error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
