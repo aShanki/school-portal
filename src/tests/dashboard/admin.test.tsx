@@ -6,8 +6,7 @@ import AdminLayout from '@/app/dashboard/admin/layout'
 import AdminDashboard from '@/app/dashboard/admin/page'
 import UsersPage from '@/app/dashboard/admin/users/page'
 import ClassesPage from '@/app/dashboard/admin/classes/page'
-import { renderWithProviders, createMockSession, selectOption } from '../utils'
-import { within } from '@testing-library/react'
+import { renderWithProviders, createMockSession } from '../utils'
 
 // Mock next-auth
 jest.mock('next-auth/react')
