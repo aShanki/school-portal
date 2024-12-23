@@ -43,28 +43,29 @@ interface GlobalWithMongoose {
   };
 }
 
-const cached = global as GlobalWithMongoose;
+const cached = (global as GlobalWithMongoose & { mongoose: NonNullable<GlobalWithMongoose['mongoose']> })
+
 if (!cached.mongoose) {
-  cached.mongoose = { conn: null, promise: null };
+  cached.mongoose = { conn: null, promise: null }
 }
 
 export async function connectToDb() {
   if (cached.mongoose.conn) {
-    return cached.mongoose.conn;
+    return cached.mongoose.conn
   }
 
   if (!cached.mongoose.promise) {
-    cached.mongoose.promise = mongoose.connect(uri, options);
+    cached.mongoose.promise = mongoose.connect(uri, options)
   }
 
   try {
-    cached.mongoose.conn = await cached.mongoose.promise;
+    cached.mongoose.conn = await cached.mongoose.promise
   } catch (e) {
-    cached.mongoose.promise = null;
-    throw e;
+    cached.mongoose.promise = null
+    throw e
   }
 
-  return cached.mongoose.conn;
+  return cached.mongoose.conn
 }
 
 export default clientPromise;

@@ -29,7 +29,7 @@ export default function StudentDashboardPage() {
 
   const { data: classes, isLoading, error } = useQuery<ClassData[]>({
     queryKey: ['classes'],
-    queryFn: () => fetchData('/api/dashboard/student/classes'),
+    queryFn: () => fetchData('/api/dashboard/student/classes', session),
     enabled: !!session
   })
 

@@ -72,6 +72,10 @@ export default function UsersPage() {
     }
   }
 
+  const handleMenuOpenChange = (open: boolean) => {
+    setSelectedMenu(open ? selectedMenu : null)
+  }
+
   if (isLoading) return <div>Loading...</div>
   if (error) return <div>Error: {(error as Error).message}</div>
 
@@ -98,7 +102,10 @@ export default function UsersPage() {
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
-                <DropdownMenu open={!!selectedMenu} onOpenChange={setSelectedMenu}>
+                <DropdownMenu 
+                  open={!!selectedMenu} 
+                  onOpenChange={handleMenuOpenChange}
+                >
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 

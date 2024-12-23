@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input'
 import { Pencil, Check } from 'lucide-react'
 import { CreateAssignmentDialog } from './CreateAssignmentDialog'
+import { toast } from 'sonner'
 
 // Move your interfaces here
 interface Assignment {
@@ -168,23 +169,17 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
     onError: (err, variables, context) => {
       const queryKey: ClassQueryKey = ['class', classId]
       queryClient.setQueryData(queryKey, context?.previousData)
-      toast({
-        variant: "destructive",
-        title: "Error updating grade",
-        description: "Please try again"
-      })
+      toast.error("Error updating grade. Please try again")
     },
     onSuccess: () => {
       const queryKey: ClassQueryKey = ['class', classId]
       queryClient.invalidateQueries({ queryKey })
-      toast({
-        title: "Grade updated successfully"
-      })
+      toast.success("Grade updated successfully")
     }
   })
 
   const debouncedGradeUpdate = useMutation({
-    mutationFn: ({ studentId, assignmentId, value, maxPoints }: { 
+    mutationFn: async ({ studentId, assignmentId, value, maxPoints }: { 
       studentId: string
       assignmentId: string
       value: string
@@ -192,14 +187,10 @@ export function GradesTable({ classData, classId }: GradesTableProps) {
     }) => {
       const points = Number(value)
       if (points < 0 || points > maxPoints) {
-        toast({
-          variant: "destructive", 
-          title: "Invalid grade",
-          description: `Grade must be between 0 and ${maxPoints}`
-        })
-        return
+        toast.error(`Grade must be between 0 and ${maxPoints}`)
+        return null
       }
-      gradeMutation.mutate({ studentId, assignmentId, points })
+      return gradeMutation.mutateAsync({ studentId, assignmentId, points })
     }
   })
 

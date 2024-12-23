@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
@@ -6,16 +6,17 @@ import Class from '@/models/Class'
 import { isValidObjectId } from 'mongoose'
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     if (session?.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isValidObjectId(params.id)) {
+    if (!isValidObjectId(id)) {
       return NextResponse.json({ error: 'Invalid class ID' }, { status: 400 })
     }
 
@@ -28,7 +29,7 @@ export async function POST(
     await connectToDb()
 
     const updatedClass = await Class.findByIdAndUpdate(
-      params.id,
+      id,
       { $addToSet: { studentIds: studentId } },
       { new: true }
     )

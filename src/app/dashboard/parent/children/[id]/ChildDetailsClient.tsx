@@ -42,8 +42,8 @@ export default function ChildDetailsClient({ childId }: { childId: string }) {
             >
               <h3 className="font-medium">{cls.name}</h3>
               <p>Subject: {cls.subject}</p>
-              <p>Teacher: {cls.teacher.name}</p>
-              <p>Average Grade: {cls.averageGrade}%</p>
+              <p>Teacher: {cls.teacherId?.name}</p>
+              <p>Average Grade: {cls.averageGrade ?? 'N/A'}%</p>
             </div>
           ))}
         </div>

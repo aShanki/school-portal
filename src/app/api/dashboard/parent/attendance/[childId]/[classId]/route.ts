@@ -7,14 +7,36 @@ import Class from '@/models/Class'
 import Attendance from '@/models/Attendance'
 import { Types } from 'mongoose'
 
+interface UserDocument {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface ClassDocument {
+  _id: Types.ObjectId;
+  name: string;
+  teacherId: UserDocument;
+}
+
 // Add type guards at the top of the file
 function isUserDocument(obj: unknown): obj is UserDocument {
-  return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string';
+  return Boolean(
+    obj && 
+    typeof obj === 'object' && 
+    'name' in obj && 
+    typeof (obj as UserDocument).name === 'string'
+  )
 }
 
 function isClassDocument(obj: unknown): obj is ClassDocument {
-  return obj && typeof obj === 'object' && 'name' in obj && 
-    'teacherId' in obj && typeof obj.name === 'string';
+  return Boolean(
+    obj && 
+    typeof obj === 'object' && 
+    'name' in obj &&
+    'teacherId' in obj
+  )
 }
 
 export async function GET(

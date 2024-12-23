@@ -7,7 +7,29 @@ import Grade from '@/models/Grade'
 import Attendance from '@/models/Attendance'
 import { Types } from 'mongoose'
 
-const calculateAttendanceRate = (records: { status: string }[]): number => {
+interface AttendanceRecord {
+  status: string;
+  // Add other fields if needed
+}
+
+interface MongoUser {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+  role: string;
+  parentIds?: Types.ObjectId[];
+  averageGrade?: number;
+  attendanceRate?: number;
+}
+
+interface MongoAttendance {
+  _id: Types.ObjectId;
+  studentId: Types.ObjectId;
+  status: string;
+  date: Date;
+}
+
+const calculateAttendanceRate = (records: AttendanceRecord[]): number => {
   if (records.length === 0) return 0
   const presentCount = records.filter(r => r.status === 'present' || r.status === 'late').length
   return Math.round((presentCount / records.length) * 100)
@@ -17,24 +39,24 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     console.log('Session:', session)
-    
-    if (!session || session.user?.role !== 'PARENT') {
+
+    if (!session?.user?.id || session.user?.role !== 'PARENT') {
       return NextResponse.json(
-        { error: 'Unauthorized', message: 'Parent access required' }, 
+        { error: 'Unauthorized', message: 'Parent access required' },
         { status: 401 }
       )
     }
 
     await connectToDb()
-    
+
     const parentId = new Types.ObjectId(session.user.id)
 
-    const children = await User.find({
+    const children = (await User.find({
       role: 'STUDENT',
       parentIds: parentId
     })
-    .select('name email')
-    .lean()
+      .select('name email')
+      .lean()) as unknown as MongoUser[]
 
     let totalGrades = 0
     let totalAttendance = 0
@@ -42,10 +64,10 @@ export async function GET() {
 
     for (const child of children) {
       const grades = await Grade.find({ studentId: child._id }).lean()
-      const attendanceRecords = await Attendance.find({
+      const attendanceRecords = (await Attendance.find({
         studentId: child._id,
-        date: { $gte: new Date(Date.now() - 30*24*60*60*1000) }
-      }).lean()
+        date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      }).lean()) as unknown as MongoAttendance[]
 
       let totalPoints = 0
       let totalMaxPoints = 0

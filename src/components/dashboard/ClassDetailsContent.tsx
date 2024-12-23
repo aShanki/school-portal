@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { fetchData } from '@/lib/data-fetching'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useRouter } from 'next/navigation'
@@ -13,9 +13,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useEffect } from 'react'
 
-interface FetchError extends Error {
-  statusCode?: number;
+interface Assignment {
+  _id: string;
+  name: string;
+  description: string;
+  totalPoints: number;
+}
+
+interface Grade {
+  assignmentId: string;
+  points: number;
+}
+
+interface ClassDetails {
+  name: string;
+  assignments: Assignment[];
+  grades: Grade[];
 }
 
 interface ClassDetailsContentProps {
@@ -26,25 +41,30 @@ export default function ClassDetailsContent({ id }: ClassDetailsContentProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  const { data: classDetails, isLoading, error } = useQuery({
+  const queryOptions: UseQueryOptions<ClassDetails, Error> = {
     queryKey: ['class', id],
-    queryFn: () => fetchData(`/api/dashboard/student/classes/${id}`),
+    queryFn: () => fetchData(`/api/dashboard/student/classes/${id}`, session),
     enabled: !!session && !!id,
-    retry: 1,
-    onError: (error: FetchError) => {
-      if (error.statusCode === 401) {
-        router.push('/api/auth/signin')
-      }
+    retry: false
+  }
+
+  const { data: classDetails, isLoading, error } = useQuery<ClassDetails, Error>(queryOptions)
+
+  useEffect(() => {
+    if (error) {
+      router.push('/api/auth/signin')
+    } else if (classDetails === undefined) {
+      router.push('/dashboard')
     }
-  })
+  }, [error, classDetails, router])
 
   const calculateTotalGrade = () => {
     if (!classDetails?.assignments?.length || !classDetails?.grades?.length) return 0
     
-    const totalPoints = classDetails.assignments.reduce((sum, assignment) => 
+    const totalPoints = classDetails.assignments.reduce((sum: number, assignment: Assignment) => 
       sum + assignment.totalPoints, 0)
     
-    const earnedPoints = classDetails.grades.reduce((sum, grade) => 
+    const earnedPoints = classDetails.grades.reduce((sum: number, grade: Grade) => 
       sum + grade.points, 0)
     
     return Math.round((earnedPoints / totalPoints) * 100)
@@ -54,7 +74,7 @@ export default function ClassDetailsContent({ id }: ClassDetailsContentProps) {
     return <LoadingSpinner />
   }
 
-  if (error) {
+  if (error || !classDetails) {
     return (
       <div className="p-6">
         <div className="text-red-500">

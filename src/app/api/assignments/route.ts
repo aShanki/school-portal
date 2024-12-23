@@ -5,14 +5,22 @@ import { authOptions } from '@/lib/auth'
 
 import Assignment from '@/models/Assignment'
 
+interface AssignmentBody {
+  name: string;
+  category: string;
+  totalPoints: number;
+  description?: string;
+  classId: string;
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json()
+    const body = await req.json() as AssignmentBody
     const { name, category, totalPoints, description, classId } = body
 
     if (!name || !category || !totalPoints || !classId) {

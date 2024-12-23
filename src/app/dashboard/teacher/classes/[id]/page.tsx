@@ -113,9 +113,9 @@ export default async function ClassDetailsPage({ params }: PageProps) {
     console.error(`[Page ${requestId}] Error loading class:`, { 
       id, 
       error,
-      errorName: error.name,
-      errorMessage: error.message,
-      errorStack: error.stack 
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined
     })
     redirect('/dashboard')
   }

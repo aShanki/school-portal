@@ -1,12 +1,6 @@
 'use client'
 
-interface Class {
-  _id: string
-  name: string
-  subject: string
-  teacherId?: { name: string }
-  studentIds?: string[]
-}
+import { Class } from '@/types'
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -79,6 +73,10 @@ export default function ClassesPage() {
     }
   }
 
+  const handleMenuOpenChange = (open: boolean) => {
+    setSelectedMenu(open ? selectedMenu : null)
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6" data-testid="loading-skeleton">
@@ -137,7 +135,10 @@ export default function ClassesPage() {
               <TableCell>{cls.subject}</TableCell>
               <TableCell>{cls.studentIds?.length || 0}</TableCell>
               <TableCell>
-                <DropdownMenu open={!!selectedMenu} onOpenChange={setSelectedMenu}>
+                <DropdownMenu 
+                  open={!!selectedMenu} 
+                  onOpenChange={handleMenuOpenChange}
+                >
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
@@ -184,7 +185,7 @@ export default function ClassesPage() {
       <CreateClassDialog 
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}
-        classToEdit={selectedClass}
+        classToEdit={selectedClass || undefined}
         onClose={() => setSelectedClass(null)}
       />
     </div>

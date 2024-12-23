@@ -7,6 +7,7 @@ export interface Class {
     name: string
   }
   studentIds?: string[]
+  averageGrade?: number
 }
 
 export interface AttendanceRecord {
@@ -29,4 +30,14 @@ export interface ClassAttendance {
     absent: number
     rate: number
   }
+}
+
+export interface MongoUser extends Document {
+  _id: string
+  name: string
+  email: string
+  role: string
+  parentIds?: string[]
+  averageGrade?: number
+  attendanceRate?: number
 }
