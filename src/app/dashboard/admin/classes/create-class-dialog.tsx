@@ -71,7 +71,7 @@ export function CreateClassDialog({
     }
   }, [classToEdit, form])
 
-  const { data: teachers = [], isLoading: isLoadingTeachers } = useQuery<Teacher[]>({
+  const { data: teachers = [] } = useQuery<Teacher[]>({
     queryKey: ['teachers'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/admin/teachers')

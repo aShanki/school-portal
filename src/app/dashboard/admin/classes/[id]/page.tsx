@@ -30,6 +30,10 @@ interface User {
   email: string;
 }
 
+interface SerializedStudent extends Omit<User, '_id'> {
+  _id: string;
+}
+
 interface ClassDocument extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -97,7 +101,7 @@ export async function ClassStudentsPage(
       ...classData.teacherId,
       _id: classData.teacherId._id.toString()
     } : null,
-    studentIds: (classData.studentIds || []).map((student: any) => ({
+    studentIds: (classData.studentIds || []).map((student: SerializedStudent) => ({
       ...student,
       _id: student._id.toString()
     }))
