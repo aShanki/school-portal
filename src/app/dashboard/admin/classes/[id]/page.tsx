@@ -1,6 +1,7 @@
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
 import ClassDetailsClient from './ClassDetailsClient'
+import ClassStudentsClient from './ClassStudentsClient'
 import { Types } from 'mongoose'
 
 interface Teacher {
@@ -73,4 +74,34 @@ export default async function ClassDetailsPage(
   }
 
   return <ClassDetailsClient initialData={serializedData} classId={params.id} />
+}
+
+export async function ClassStudentsPage(
+  props: { params: { id: string } }
+) {
+  await connectToDb()
+
+  const classData = await Class.findById(props.params.id)
+    .populate('teacherId', 'name email')
+    .populate('studentIds', 'name email')
+    .lean()
+
+  if (!classData) {
+    throw new Error('Class not found')
+  }
+
+  const serializedData = {
+    ...classData,
+    _id: classData._id.toString(),
+    teacherId: classData.teacherId ? {
+      ...classData.teacherId,
+      _id: classData.teacherId._id.toString()
+    } : null,
+    studentIds: (classData.studentIds || []).map((student: any) => ({
+      ...student,
+      _id: student._id.toString()
+    }))
+  }
+
+  return <ClassStudentsClient initialData={serializedData} classId={props.params.id} />
 }

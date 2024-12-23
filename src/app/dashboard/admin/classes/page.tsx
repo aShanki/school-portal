@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table'
 import { CreateClassDialog } from './create-class-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash, Users } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 export default function ClassesPage() {
   const router = useRouter()
@@ -124,7 +125,14 @@ export default function ClassesPage() {
         <TableBody>
           {classes?.map((cls: Class) => (
             <TableRow key={cls._id}>
-              <TableCell>{cls.name}</TableCell>
+              <TableCell>
+                <Link 
+                  href={`/dashboard/admin/classes/${cls._id}`}
+                  className="hover:underline"
+                >
+                  {cls.name}
+                </Link>
+              </TableCell>
               <TableCell>{cls.teacherId?.name}</TableCell>
               <TableCell>{cls.subject}</TableCell>
               <TableCell>{cls.studentIds?.length || 0}</TableCell>
@@ -143,6 +151,12 @@ export default function ClassesPage() {
                   </DropdownMenuTrigger>
                   {selectedMenu === cls._id && (
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/admin/classes/${cls._id}`}>
+                          <Users className="mr-2 h-4 w-4" />
+                          Manage Students
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
                         setSelectedClass(cls)
                         setShowCreateDialog(true)

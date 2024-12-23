@@ -3,10 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectToDb } from '@/lib/mongodb'
 import Class from '@/models/Class'
+import { isValidObjectId } from 'mongoose'
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,25 +15,34 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!isValidObjectId(params.id)) {
+      return NextResponse.json({ error: 'Invalid class ID' }, { status: 400 })
+    }
+
     const { studentId } = await request.json()
-    const { id } = await params
+
+    if (!isValidObjectId(studentId)) {
+      return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 })
+    }
 
     await connectToDb()
-    
+
     const updatedClass = await Class.findByIdAndUpdate(
-      id,
+      params.id,
       { $addToSet: { studentIds: studentId } },
       { new: true }
     )
-    .populate('studentIds', 'name email')
-    .populate('teacherId', 'name email')
 
-    // Serialize the MongoDB document
-    const serializedClass = JSON.parse(JSON.stringify(updatedClass))
+    if (!updatedClass) {
+      return NextResponse.json({ error: 'Class not found' }, { status: 404 })
+    }
 
-    return NextResponse.json(serializedClass)
-  } catch (error: unknown) {
-    console.error('Add student error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    return NextResponse.json(updatedClass)
+  } catch (error) {
+    console.error('Add student error:', error)
+    return NextResponse.json(
+      { error: 'Failed to add student' },
+      { status: 500 }
+    )
   }
 }
