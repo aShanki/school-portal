@@ -19,13 +19,6 @@ This project is a comprehensive school management system built with Next.js, Typ
 - **Attendance Tracking**: Track and manage student attendance.
 - **User Management**: Manage user accounts and roles.
 
-### UI Components
-- **Sidebar**: Navigation menu for different user roles.
-- **Dialogs**: Modal dialogs for creating and editing classes, assignments, and users.
-- **Tables**: Display data in a tabular format for classes, assignments, and grades.
-- **Forms**: Input forms for creating and editing data.
-- **Toaster**: Notifications for user actions and system events.
-
 ## Technology Stack
 
 ### Frontend
