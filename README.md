@@ -59,6 +59,13 @@ This project is a comprehensive school management system built with Next.js, Typ
 3. Set up environment variables:
    Create a `.env.local` file and add your MongoDB URI and other necessary environment variables.
 
+```env
+MONGODB_URI=mongodb://<username>:<password>@<host>:<port>/school-portal?authSource=admin&directConnection=true&serverSelectionTimeoutMS=5000
+AUTH_SECRET="<your-auth-secret>"
+NEXTAUTH_URL=<your-custom-url>
+NEXTAUTH_URL_INTERNAL=http://<internal-host>:<internal-port>
+NODE_ENV='production or development'
+
 4. Run the development server:
    ```sh
    npm run dev
